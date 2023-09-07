@@ -11,6 +11,19 @@ public class Program
 	private const string HDR_SOUND    = "s";
 	private const int    DEVICE_INDEX = 3;
 
+	/*
+	$x = iwr -Method Get -Uri "https://localhost:7182/IsPlaying" -Headers @{'s'="H:\Other Music\Drum N Bass\Darchives\darchives-scenario-(primcd003)-cd-flac-1999-dl\01-darchives-first_offensive.flac"}
+	$x
+	 */
+
+	/*
+	iwr -Method Get -Uri "https://localhost:7182/Play" -Headers @{'s'="H:\Other Music\Drum N Bass\Darchives\darchives-scenario-(primcd003)-cd-flac-1999-dl\01-darchives-first_offensive.flac"}
+	 */
+
+	/*
+	iwr -Method Get -Uri "https://localhost:7182/Stop" -Headers @{'s'="H:\Other Music\Drum N Bass\Darchives\darchives-scenario-(primcd003)-cd-flac-1999-dl\01-darchives-first_offensive.flac"}
+	 */
+
 	public static async Task Main(string[] args)
 	{
 		var builder = WebApplication.CreateBuilder(args);
@@ -56,22 +69,23 @@ public class Program
 
 	private static async Task Stop(HttpContext context)
 	{
-		var s = context.Request.Headers[HDR_SOUND];
+		string s = context.Request.Headers[HDR_SOUND];
 
 		if (Sounds.TryRemove(s, out var ss)) {
 			ss.Stop();
-
+			ss.Dispose();
 		}
 
 		Logger.LogInformation("Stopped {Sound}", s);
 
 	}
+
 	private static async Task IsPlaying(HttpContext context)
 	{
-		var s = context.Request.Headers[HDR_SOUND];
-		
+		string s = context.Request.Headers[HDR_SOUND];
+
 		var b = Sounds.ContainsKey(s);
-		
+
 		await context.Response.WriteAsync(text: $"{b.ToString()}", Encoding.UTF8);
 		await context.Response.CompleteAsync();
 	}
@@ -82,23 +96,33 @@ public class Program
 
 		string? audioFilePath = context.Request.Headers[HDR_SOUND];
 
-		var waveOut = new WaveOutEvent()
+		using var waveOut = new WaveOutEvent()
 		{
 			DeviceNumber = DEVICE_INDEX
 		};
 
 		await using (var audioFileReader = new AudioFileReader(audioFilePath)) {
 			waveOut.Init(audioFileReader);
+			Sounds.TryAdd(audioFilePath, waveOut);
 			waveOut.Play();
 			Logger.LogInformation("Playing {Sound}", audioFilePath);
-			Sounds.TryAdd(audioFilePath, waveOut);
 
-			/*while (waveOut.PlaybackState == PlaybackState.Playing) {
-				System.Threading.Thread.Sleep(100);
-			}*/
+			ThreadPool.QueueUserWorkItem((x) =>
+			{
+
+				while (waveOut.PlaybackState == PlaybackState.Playing) {
+					System.Threading.Thread.Sleep(100);
+
+					if (!Sounds.ContainsKey(audioFilePath)) {
+						Logger.LogInformation("Break");
+						break;
+					}
+				}
+
+				Sounds.TryRemove(audioFilePath, out var wcv);
+				wcv?.Dispose();
+			});
 		}
-
-		Sounds.TryRemove(audioFilePath, out _);
 
 	}
 }
