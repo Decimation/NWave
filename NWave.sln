@@ -1,0 +1,31 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.6.33815.320
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NWave", "NWave\NWave.csproj", "{640D30F3-B564-416E-A530-98ADF46DC4D0}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NWave.Server", "NWave.Server\NWave.Server.csproj", "{FD383648-F34F-4042-A5F7-7C3091CD9652}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{640D30F3-B564-416E-A530-98ADF46DC4D0}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{640D30F3-B564-416E-A530-98ADF46DC4D0}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{640D30F3-B564-416E-A530-98ADF46DC4D0}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{640D30F3-B564-416E-A530-98ADF46DC4D0}.Release|Any CPU.Build.0 = Release|Any CPU
+		{FD383648-F34F-4042-A5F7-7C3091CD9652}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{FD383648-F34F-4042-A5F7-7C3091CD9652}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{FD383648-F34F-4042-A5F7-7C3091CD9652}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{FD383648-F34F-4042-A5F7-7C3091CD9652}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {12A2DCB7-3FF0-4E6F-84A9-FE5F7ADCCC9A}
+	EndGlobalSection
+EndGlobal
