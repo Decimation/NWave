@@ -1,89 +1,104 @@
 using System.Collections.Concurrent;
+using System.Text;
+using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.Extensions.Logging.Console;
 using NAudio.Wave;
 
-namespace NWave.Server
+namespace NWave.Server;
+
+public class Program
 {
-	public class Program
+	private const string HDR_SOUND    = "s";
+	private const int    DEVICE_INDEX = 3;
+
+	public static async Task Main(string[] args)
 	{
-		public static void Main(string[] args)
+		var builder = WebApplication.CreateBuilder(args);
+
+		// Add services to the container.
+
+		// builder.Services.AddControllers();
+		// Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
+		builder.Services.AddEndpointsApiExplorer();
+		builder.Services.AddSwaggerGen();
+
+		App = builder.Build();
+
+		using var loggerFactory = LoggerFactory.Create(b =>
 		{
-			var builder = WebApplication.CreateBuilder(args);
+			b.AddConsole().AddDebug().AddTraceSource("TRACE");
+		});
 
-			// Add services to the container.
+		Logger = loggerFactory.CreateLogger<Program>();
 
-			// builder.Services.AddControllers();
-			// Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
-			builder.Services.AddEndpointsApiExplorer();
-			builder.Services.AddSwaggerGen();
-
-			_app = builder.Build();
-
-			using var loggerFactory = LoggerFactory.Create(b =>
-			{
-				b.AddConsole().AddDebug().AddTraceSource("TRACE");
-			});
-
-			_logger2 = loggerFactory.CreateLogger<Program>();
-
-			// Configure the HTTP request pipeline.
-			if (_app.Environment.IsDevelopment()) {
-				_app.UseSwagger();
-				_app.UseSwaggerUI();
-			}
-
-			_app.UseHttpsRedirection();
-			// app.UseAuthorization();
-			// app.MapControllers();
-
-			_app.MapGet("/Play", RequestDelegate);
-			_app.MapGet("/Stop", (Delegate));
-			_logger2.LogDebug("dbg");
-			_app.Run();
+		// Configure the HTTP request pipeline.
+		if (App.Environment.IsDevelopment()) {
+			App.UseSwagger();
+			App.UseSwaggerUI();
 		}
 
-		private static async Task Delegate(HttpContext context)
-		{
-			var s = context.Request.Headers["s"];
+		App.UseHttpsRedirection();
+		// app.UseAuthorization();
+		// app.MapControllers();
 
-			if (_dict.TryRemove(s, out var ss)) {
-				ss.Stop();
+		App.MapGet("/Play", Play);
+		App.MapGet("/Stop", (Stop));
+		App.MapGet("/IsPlaying", (IsPlaying));
 
-			}
+		Logger.LogDebug("dbg");
+		await App.RunAsync();
+	}
 
-			_logger2.LogInformation("Stopped {Sound}", s);
+	private static readonly ConcurrentDictionary<string, WaveOutEvent> Sounds = new();
 
-		}
+	private static WebApplication   App;
+	private static ILogger<Program> Logger;
 
-		private static readonly ConcurrentDictionary<string, WaveOutEvent> _dict =
-			new ConcurrentDictionary<string, WaveOutEvent>();
+	private static async Task Stop(HttpContext context)
+	{
+		var s = context.Request.Headers[HDR_SOUND];
 
-		private static WebApplication   _app;
-		private static ILogger<Program> _logger2;
-
-		private static async Task RequestDelegate(HttpContext context)
-		{
-			int deviceIndex = 3; // Change this to the index of your desired audio device
-
-			// string audioFilePath = @"H:\Other Music\Audio resources\NMicspam\ow.wav"; // Change this to the path of your audio file
-
-			string audioFilePath = context.Request.Headers["s"];
-			var    waveOut       = new WaveOutEvent();
-			waveOut.DeviceNumber = deviceIndex; // Set the desired audio device
-
-			using (var audioFileReader = new AudioFileReader(audioFilePath)) {
-				waveOut.Init(audioFileReader);
-				waveOut.Play();
-				_logger2.LogInformation("Playing {Sound}", audioFilePath);
-				_dict.TryAdd(audioFilePath, waveOut);
-
-				while (waveOut.PlaybackState == PlaybackState.Playing) {
-					System.Threading.Thread.Sleep(100);
-				}
-			}
-
-			_dict.TryRemove(audioFilePath, out _);
+		if (Sounds.TryRemove(s, out var ss)) {
+			ss.Stop();
 
 		}
+
+		Logger.LogInformation("Stopped {Sound}", s);
+
+	}
+	private static async Task IsPlaying(HttpContext context)
+	{
+		var s = context.Request.Headers[HDR_SOUND];
+		
+		var b = Sounds.ContainsKey(s);
+		
+		await context.Response.WriteAsync(text: $"{b.ToString()}", Encoding.UTF8);
+		await context.Response.CompleteAsync();
+	}
+
+	private static async Task Play(HttpContext context)
+	{
+		// string audioFilePath = @"H:\Other Music\Audio resources\NMicspam\ow.wav"; // Change this to the path of your audio file
+
+		string? audioFilePath = context.Request.Headers[HDR_SOUND];
+
+		var waveOut = new WaveOutEvent()
+		{
+			DeviceNumber = DEVICE_INDEX
+		};
+
+		await using (var audioFileReader = new AudioFileReader(audioFilePath)) {
+			waveOut.Init(audioFileReader);
+			waveOut.Play();
+			Logger.LogInformation("Playing {Sound}", audioFilePath);
+			Sounds.TryAdd(audioFilePath, waveOut);
+
+			/*while (waveOut.PlaybackState == PlaybackState.Playing) {
+				System.Threading.Thread.Sleep(100);
+			}*/
+		}
+
+		Sounds.TryRemove(audioFilePath, out _);
+
 	}
 }
