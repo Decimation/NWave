@@ -30,25 +30,25 @@ namespace NWave.ClientUI
 	/// </summary>
 	public partial class MainWindow : Window, INotifyPropertyChanged
 	{
+		private const string SERVER = $"https://localhost:7182";
+		private const string SOUNDS = @"H:\Other Music\Audio resources\NMicspam\";
+
 		public MainWindow()
 		{
 			DataContext = this;
 			InitializeComponent();
 
-			var f = Directory.EnumerateFiles(@"H:\Other Music\Audio resources\NMicspam\", searchPattern: "*.*",
-			                                 new EnumerationOptions()
-			                                 {
-				                                 RecurseSubdirectories = true
-			                                 });
-
-			Sounds = new ObservableCollection<SoundStatus>(f.Select(x => new SoundStatus(x)
+			var soundFIles = Directory.EnumerateFiles(SOUNDS, searchPattern: "*.*", new EnumerationOptions()
 			{
-				Status = Status.None
-			}));
-			Sounds.Insert(0, new SoundStatus("*") { Status = Status.None });
+				RecurseSubdirectories = true
+			});
+
+			Sounds = new ObservableCollection<SoundStatus>(soundFIles.Select(x => new SoundStatus(x)));
+			Sounds.Insert(0, new SoundStatus("*"));
+
 			Lv_Sounds.ItemsSource = Sounds;
 
-			m_client = new FlurlClient($"https://localhost:7182");
+			m_client = new FlurlClient(SERVER);
 
 			m_bg = new DispatcherTimer(DispatcherPriority.Background)
 			{
@@ -60,10 +60,11 @@ namespace NWave.ClientUI
 
 		}
 
-		private SemaphoreSlim m_semaphore = new SemaphoreSlim(1);
+		private readonly SemaphoreSlim m_semaphore = new SemaphoreSlim(1);
+
 		private async void Ticker(object? sender, EventArgs args)
 		{
-			if (m_semaphore.Wait(TimeSpan.Zero)) {
+			if (await m_semaphore.WaitAsync(TimeSpan.Zero)) {
 				return;
 			}
 
@@ -79,7 +80,7 @@ namespace NWave.ClientUI
 
 			var s = await res.GetStringAsync();
 
-			 if (s == "False") {
+			if (s == "False") {
 				snd.Status = Status.Stopped;
 			}
 
@@ -87,8 +88,8 @@ namespace NWave.ClientUI
 
 		}
 
-		private DispatcherTimer m_bg;
-		private FlurlClient     m_client;
+		private readonly DispatcherTimer m_bg;
+		private readonly FlurlClient     m_client;
 
 		private SoundStatus m_selected;
 
@@ -102,8 +103,6 @@ namespace NWave.ClientUI
 				OnPropertyChanged();
 			}
 		}
-
-		private ConcurrentBag<string> m_running = new ConcurrentBag<string>();
 
 		public ObservableCollection<SoundStatus> Sounds { get; }
 
@@ -131,7 +130,7 @@ namespace NWave.ClientUI
 					.GetAsync();
 				Selected.Status = Status.Playing;
 			});
-			e.Handled       = true;
+			e.Handled = true;
 		}
 
 		private void Btn_Stop_Click(object sender, RoutedEventArgs e)
@@ -143,11 +142,11 @@ namespace NWave.ClientUI
 					.GetAsync();
 				Selected.Status = Status.Stopped;
 			});
-			e.Handled       = true;
+			e.Handled = true;
 		}
 	}
 
-	public class SoundStatus:INotifyPropertyChanged
+	public class SoundStatus : INotifyPropertyChanged
 	{
 		public string Name { get; }
 
@@ -170,6 +169,7 @@ namespace NWave.ClientUI
 		{
 			FullName = fullName;
 			Name     = Path.GetFileName(FullName);
+			Status   = Status.None;
 		}
 
 		public event PropertyChangedEventHandler? PropertyChanged;

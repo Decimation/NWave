@@ -7,12 +7,12 @@
         mc:Ignorable="d"
         Title="MainWindow" Height="450" Width="800" DataContext="{Binding RelativeSource={RelativeSource Self}}">
     <Grid>
-        <Button x:Name="Btn_Play" Content="Play" HorizontalAlignment="Left" Margin="376,10,0,0" VerticalAlignment="Top"
+        <Button x:Name="Btn_Play" Content="Play" HorizontalAlignment="Left" Margin="10,61,0,0" VerticalAlignment="Top"
                 Width="54" Click="Btn_Play_Click" />
         <ListView x:Name="Lv_Sounds" IsSynchronizedWithCurrentItem="True"
                   SelectedItem="{Binding Selected, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
                   ItemsSource="{Binding Sounds}"
-                  Margin="10,10,429,211">
+                  Margin="10,111,10,10">
             <ListView.View>
                 <GridView>
                     <GridViewColumn Header="Name" DisplayMemberBinding="{Binding Name,UpdateSourceTrigger=PropertyChanged}" Width="100">
@@ -24,7 +24,7 @@
                 </GridView>
             </ListView.View>
         </ListView>
-        <Button x:Name="Btn_Stop" Content="Stop" HorizontalAlignment="Left" Margin="376,35,0,0" VerticalAlignment="Top"
+        <Button x:Name="Btn_Stop" Content="Stop" HorizontalAlignment="Left" Margin="10,86,0,0" VerticalAlignment="Top"
                 Width="54" Click="Btn_Stop_Click" />
 
     </Grid>
