@@ -1,0 +1,32 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>net7.0-windows</TargetFramework>
+    <Nullable>enable</Nullable>
+    <UseWPF>true</UseWPF>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Flurl.Http" Version="4.0.0-pre3" />
+    <PackageReference Include="JetBrains.Annotations" Version="2023.2.0" />
+    <PackageReference Include="Microsoft.Extensions.Logging" Version="7.0.0" />
+    <PackageReference Include="Microsoft.Extensions.Logging.Configuration" Version="7.0.0" />
+    <PackageReference Include="Microsoft.Extensions.Logging.Console" Version="7.0.0" />
+    <PackageReference Include="Microsoft.Extensions.Logging.Debug" Version="7.0.0" />
+    <PackageReference Include="Microsoft.Extensions.Logging.TraceSource" Version="7.0.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Reference Include="Kantan">
+      <HintPath>..\..\Kantan\Kantan\bin\Release\net7.0\Kantan.dll</HintPath>
+    </Reference>
+    <Reference Include="Kantan.Net">
+      <HintPath>..\..\Kantan\Kantan.Net\bin\Release\net7.0\Kantan.Net.dll</HintPath>
+    </Reference>
+    <Reference Include="Novus">
+      <HintPath>..\..\Novus\Novus\bin\Release\net7.0\Novus.dll</HintPath>
+    </Reference>
+  </ItemGroup>
+
+</Project>

@@ -59,6 +59,7 @@ public class Program
 		App.MapGet("/IsPlaying", (IsPlaying));
 
 		Logger.LogDebug("dbg");
+
 		await App.RunAsync();
 	}
 
@@ -71,20 +72,36 @@ public class Program
 	{
 		string s = context.Request.Headers[HDR_SOUND];
 
-		if (Sounds.TryRemove(s, out var ss)) {
-			ss.Stop();
-			ss.Dispose();
+		if (s == "*") {
+			foreach ((string? key, WaveOutEvent? value) in Sounds) {
+				value?.Stop();
+				value?.Dispose();
+			}
+
+			Sounds.Clear();
+		}
+
+		else {
+			Remove(s);
 		}
 
 		Logger.LogInformation("Stopped {Sound}", s);
 
 	}
 
+	private static void Remove(string? s)
+	{
+		if (Sounds.TryRemove(s, out var ss)) {
+			ss.Stop();
+			ss.Dispose();
+		}
+	}
+
 	private static async Task IsPlaying(HttpContext context)
 	{
 		string s = context.Request.Headers[HDR_SOUND];
 
-		var b = Sounds.ContainsKey(s);
+		var b = s == null ? false : Sounds.ContainsKey(s);
 
 		await context.Response.WriteAsync(text: $"{b.ToString()}", Encoding.UTF8);
 		await context.Response.CompleteAsync();
@@ -96,33 +113,34 @@ public class Program
 
 		string? audioFilePath = context.Request.Headers[HDR_SOUND];
 
-		using var waveOut = new WaveOutEvent()
+		ThreadPool.QueueUserWorkItem((x) =>
 		{
-			DeviceNumber = DEVICE_INDEX
-		};
+			var waveOut = new WaveOutEvent()
+			{
+				DeviceNumber = DEVICE_INDEX
+			};
+			var audioFileReader = new AudioFileReader(audioFilePath);
 
-		await using (var audioFileReader = new AudioFileReader(audioFilePath)) {
 			waveOut.Init(audioFileReader);
 			Sounds.TryAdd(audioFilePath, waveOut);
 			waveOut.Play();
-			Logger.LogInformation("Playing {Sound}", audioFilePath);
 
-			ThreadPool.QueueUserWorkItem((x) =>
-			{
+			while (waveOut.PlaybackState == PlaybackState.Playing) {
+				System.Threading.Thread.Sleep(100);
 
-				while (waveOut.PlaybackState == PlaybackState.Playing) {
-					System.Threading.Thread.Sleep(100);
-
-					if (!Sounds.ContainsKey(audioFilePath)) {
-						Logger.LogInformation("Break");
-						break;
-					}
+				if (!Sounds.ContainsKey(audioFilePath)) {
+					Logger.LogInformation("Break");
+					break;
 				}
+			}
 
-				Sounds.TryRemove(audioFilePath, out var wcv);
-				wcv?.Dispose();
-			});
-		}
+			Sounds.TryRemove(audioFilePath, out var wcv);
+			wcv?.Dispose();
+			waveOut.Dispose();
+
+			Logger.LogInformation("Disposing {Audio}", audioFilePath);
+		});
+		Logger.LogInformation("Playing {Sound}", audioFilePath);
 
 	}
 }
