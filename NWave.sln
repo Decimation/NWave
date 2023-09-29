@@ -7,7 +7,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "NWave", "NWave\NWave.csproj
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "NWave.Server", "NWave.Server\NWave.Server.csproj", "{FD383648-F34F-4042-A5F7-7C3091CD9652}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NWave.ClientUI", "NWave.ClientUI\NWave.ClientUI.csproj", "{F424091D-15C5-4280-A19F-C10C5A742B29}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NWave.UI", "NWave.UI\NWave.UI.csproj", "{F424091D-15C5-4280-A19F-C10C5A742B29}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
