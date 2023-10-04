@@ -34,8 +34,9 @@ public class SoundItem : INotifyPropertyChanged, IDisposable
 		}
 	}
 
-	public WaveOutEvent Out         { get; set; }
-	public int          DeviceIndex { get; }
+	public WaveOutEvent Out { get; set; }
+
+	public int DeviceIndex { get; }
 
 	public SoundItem(string fullName, int idx)
 	{
@@ -58,6 +59,22 @@ public class SoundItem : INotifyPropertyChanged, IDisposable
 	{
 		Status = PlaybackStatus.Stopped;
 
+	}
+
+	public void PlayPause()
+	{
+		if (Status == PlaybackStatus.Playing) {
+			Pause();
+		}
+		else if (Status == PlaybackStatus.Paused || Status == PlaybackStatus.Stopped || Status == PlaybackStatus.None) {
+			Play();
+		}
+	}
+
+	public void Pause()
+	{
+		Status = PlaybackStatus.Paused;
+		Out.Pause();
 	}
 
 	public void Play()
@@ -93,6 +110,7 @@ public class SoundItem : INotifyPropertyChanged, IDisposable
 
 	public void Dispose()
 	{
+		Stop();
 		Out.PlaybackStopped -= OnHandler;
 		Out.Dispose();
 		FileReader.Dispose();
@@ -103,5 +121,6 @@ public enum PlaybackStatus
 {
 	None,
 	Playing,
+	Paused,
 	Stopped,
 }

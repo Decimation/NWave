@@ -5,16 +5,20 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:NWave.UI"
         mc:Ignorable="d"
-        Title="MainWindow" Height="450" Width="800" DataContext="{Binding RelativeSource={RelativeSource Self}}">
+        Title="MainWindow" Height="450" Width="800" DataContext="{Binding RelativeSource={RelativeSource Self}}"
+        SourceInitialized="OnSourceInitialized"
+        Closing="OnClosing">
     <Grid>
-        
-        <Button x:Name="Btn_Play" Content="Play" HorizontalAlignment="Left" Margin="10,61,0,0" VerticalAlignment="Top"
+
+        <Button x:Name="Btn_Play" Content="Play" HorizontalAlignment="Left" Margin="10,37,0,0" VerticalAlignment="Top"
                 Width="54" Click="Btn_Play_Click" />
 
         <ListView x:Name="Lv_Sounds" IsSynchronizedWithCurrentItem="True"
                   SelectedItem="{Binding Selected, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
-                  ItemsSource="{Binding Sounds}"
-                  Margin="10,111,10,10">
+                  ItemsSource="{Binding Sounds}" AllowDrop="True"
+                  Margin="10,111,10,10" DragOver="Lv_Sounds_DragOver" Drop="Lv_Sounds_Drop"
+                  DragEnter="Lv_Sounds_DragEnter" PreviewDragOver="Lv_Sounds_PreviewDragOver"
+                  KeyDown="Lv_Sounds_KeyDown">
             <ListView.View>
                 <GridView>
                     <GridViewColumn Header="Name"
@@ -33,6 +37,17 @@
 
         <Button x:Name="Btn_Stop" Content="Stop" HorizontalAlignment="Left" Margin="10,86,0,0" VerticalAlignment="Top"
                 Width="54" Click="Btn_Stop_Click" />
+
+        <Button x:Name="Btn_Pause" Content="Pause" HorizontalAlignment="Left" Margin="10,61,0,0"
+                VerticalAlignment="Top"
+                Width="54" Click="Btn_Pause_Click" />
+
+        <Button x:Name="Btn_StopAll" Content="Stop All" HorizontalAlignment="Left" Margin="69,86,0,0"
+                VerticalAlignment="Top"
+                Width="54" Click="Btn_StopAll_Click" />
+
+        <Button x:Name="Btn_Clear" Content="Clear" HorizontalAlignment="Left" Margin="69,61,0,0"
+                VerticalAlignment="Top" Click="Btn_Clear_Click" />
 
     </Grid>
 </Window>
