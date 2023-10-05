@@ -28,6 +28,7 @@ using Microsoft.Extensions.Logging;
 using NAudio.Wave;
 using Novus.Win32;
 using Novus.Win32.Structures.User32;
+using NWave.Lib;
 
 namespace NWave.UI;
 

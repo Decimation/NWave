@@ -7,7 +7,9 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "NWave", "NWave\NWave.csproj
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "NWave.Server", "NWave.Server\NWave.Server.csproj", "{FD383648-F34F-4042-A5F7-7C3091CD9652}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NWave.UI", "NWave.UI\NWave.UI.csproj", "{F424091D-15C5-4280-A19F-C10C5A742B29}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "NWave.UI", "NWave.UI\NWave.UI.csproj", "{F424091D-15C5-4280-A19F-C10C5A742B29}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NWave.Lib", "NWave.Lib\NWave.Lib.csproj", "{F0F55600-1485-49E4-B8E2-AA33442E6F7C}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -27,6 +29,10 @@ Global
 		{F424091D-15C5-4280-A19F-C10C5A742B29}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{F424091D-15C5-4280-A19F-C10C5A742B29}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{F424091D-15C5-4280-A19F-C10C5A742B29}.Release|Any CPU.Build.0 = Release|Any CPU
+		{F0F55600-1485-49E4-B8E2-AA33442E6F7C}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{F0F55600-1485-49E4-B8E2-AA33442E6F7C}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{F0F55600-1485-49E4-B8E2-AA33442E6F7C}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{F0F55600-1485-49E4-B8E2-AA33442E6F7C}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
