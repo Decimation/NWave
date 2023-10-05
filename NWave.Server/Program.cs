@@ -114,100 +114,71 @@ public class Program
 
 	private static async Task ListAsync(HttpContext ctx)
 	{
+		ctx.Response.ContentType = FileType.MT_TEXT_PLAIN;
 		foreach (SoundItem soundItem in Sounds) {
-			await ctx.Response.WriteAsync($"{soundItem}");
+			await ctx.Response.WriteAsync($"{soundItem}\n");
 
 		}
 
 		await ctx.Response.CompleteAsync();
 	}
+
 	private static async Task StopAsync(HttpContext context)
 	{
-		if (!context.Request.Headers.TryGetValue(HDR_SOUND, out var sv)) {
+		var ss   = await GetBody(context);
+		var snds = Find(ss);
 
-			context.Response.StatusCode = (int) HttpStatusCode.BadRequest;
-			await context.Response.CompleteAsync();
-			return;
+		context.Response.ContentType = FileType.MT_TEXT_PLAIN;
+
+		foreach (var si in snds)
+		{
+			si.Stop();
+			await context.Response.WriteAsync($"{si}\n");
+			Logger.LogInformation("Stopped {Sound}", si);
+
 		}
-
-		string s = sv[0];
-
-		var sii = Find(s);
-		sii?.Stop();
-
-		if (s == "*") {
-			foreach (var si in Sounds) {
-				si.Stop();
-			}
-		}
-
-		Logger.LogInformation("Stopped {Sound}", s);
+		await context.Response.CompleteAsync();
 
 	}
 
 	private static async Task StatusAsync(HttpContext context)
 	{
-		if (!context.Request.Headers.TryGetValue(HDR_SOUND, out var sv)) {
-			var pl = Sounds.Where(x => x.Status != PlaybackStatus.None);
-			context.Response.ContentType = FileType.MT_TEXT_PLAIN;
+		var ss   = await GetBody(context);
+		var snds = Find(ss);
 
-			foreach (var item in pl) {
-				await context.Response.WriteAsync(text: $"{item}\n", Encoding.UTF8);
+		context.Response.ContentType = FileType.MT_TEXT_PLAIN;
 
-			}
+		foreach (var si in snds)
+		{
 
-			await context.Response.CompleteAsync();
+			await context.Response.WriteAsync($"{si}\n");
 
-			return;
 		}
 
-		string s = sv[0];
-		string m = null;
-
-		if (s == null) {
-			m = "Not found";
-		}
-		else {
-			var sn = Find(s);
-
-			if (sn == null) {
-				m = $"Not found";
-			}
-			else {
-				m = $"{sn.Status}";
-
-			}
-		}
-
-		await context.WriteMessageAsync($"{m}");
+		await context.Response.CompleteAsync();
 	}
 
 	private static async Task PlayAsync(HttpContext context)
 	{
 		// string audioFilePath = @"H:\Other Music\Audio resources\NMicspam\ow.wav"; // Change this to the path of your audio file
-		string ss = await context.ReadBodyAsync();
+		var ss   = await GetBody(context);
+		var snds = Find(ss);
 
-		if (!context.Request.Headers.TryGetValue(HDR_SOUND, out var s)) {
-			context.Response.StatusCode = (int) HttpStatusCode.BadRequest;
-			await context.Response.CompleteAsync();
-			return;
+		context.Response.ContentType = FileType.MT_TEXT_PLAIN;
+
+		foreach (var si in snds) {
+			ThreadPool.QueueUserWorkItem((x) =>
+			{
+				Logger.LogInformation("Playing {Audio}", si);
+				si.Play();
+			});
+
+			await context.Response.WriteAsync($"{si} playing\n");
+
 		}
 
-		var si = Find(s);
+		await context.Response.CompleteAsync();
 
-		if (si == null) {
-			context.Response.StatusCode  = 404;
-			await context.WriteMessageAsync( $"{s} not found");
-			return;
-		}
-
-		ThreadPool.QueueUserWorkItem((x) =>
-		{
-			Logger.LogInformation("Playing {Audio}", si);
-			si.Play();
-		});
-
-		await context.WriteMessageAsync($"{si} playing");
 	}
 
 	public static bool ContainsLike(string source, string like)
@@ -220,6 +191,30 @@ public class Program
 		return Regex.IsMatch(
 			source,
 			"^" + Regex.Escape(like).Replace("_", ".").Replace("%", ".*") + "$");
+	}
+
+	private static async Task<string[]> GetBody(HttpContext c)
+	{
+		var b = await c.ReadBodyAsync();
+
+		if (b == null) {
+			return Array.Empty<string>();
+		}
+
+		return b.Split(',');
+	}
+
+	private static IEnumerable<SoundItem> Find(IEnumerable<string> s)
+	{
+		foreach (string s1 in s) {
+
+			var si = Find(s1);
+
+			if (si != null) {
+				yield return si;
+
+			}
+		}
 	}
 
 	private static SoundItem? Find(string? s)
