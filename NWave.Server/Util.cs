@@ -3,24 +3,18 @@
 
 using Novus.FileTypes;
 using System.Buffers;
+using System.Net.Mime;
 using System.Text;
 
 namespace NWave.Server;
 
 public static class Util
 {
-	public const    int      BUFLEN_DEFAULT = 4096;
-	internal static Encoding Encoding { get; set; } = Encoding.UTF8;
+	public const int BUF_LEN_DEFAULT = 4096;
 
-	public static async Task WriteMessageAsync(this HttpContext context, string text)
-	{
-		context.Response.ContentType = FileType.MT_TEXT_PLAIN;
-		await context.Response.WriteAsync(text: text, Encoding);
-		await context.Response.CompleteAsync();
-	}
+	public static Encoding Encoding { get; set; } = Encoding.UTF8;
 
-	public static async Task<string> ReadBodyAsync(Stream body,
-	                                               int bufLen = BUFLEN_DEFAULT,
+	public static async Task<string> ReadBodyTextAsync(Stream body, int bufLen = BUF_LEN_DEFAULT,
 	                                               CancellationToken c = default)
 	{
 		// Build up the request body in a string builder.
@@ -48,9 +42,9 @@ public static class Util
 		return entireRequestBody;
 	}
 
-	public static Task<string> ReadBodyAsync(this HttpContext context)
+	public static Task<string> ReadBodyTextAsync(this HttpContext context)
 	{
-		return ReadBodyAsync(context.Request.Body);
+		return ReadBodyTextAsync(context.Request.Body);
 	}
 
 	/*public static async Task<string?> ReadBodyAsync(this HttpContext context)
@@ -67,4 +61,14 @@ public static class Util
 		var ss  = Encoding.GetString(buf);
 		return ss;
 	}*/
+	public static async Task<string[]> ReadBodyEntriesAsync(this HttpContext c)
+	{
+		var b = await c.ReadBodyTextAsync();
+
+		if (string.IsNullOrEmpty(b)) {
+			return Array.Empty<string>();
+		}
+
+		return b.Split(',');
+	}
 }

@@ -4,6 +4,7 @@ using System.Text;
 using System.Text.RegularExpressions;
 using Microsoft.AspNetCore.Diagnostics;
 using Microsoft.AspNetCore.Http.HttpResults;
+using Microsoft.AspNetCore.Server.Kestrel.Core;
 using Microsoft.Extensions.Logging.Console;
 using NAudio.Wave;
 using Novus.FileTypes;
@@ -41,11 +42,11 @@ public sealed class Program
 
 		// builder.Services.AddControllers();
 		// Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
-		builder.Services.AddEndpointsApiExplorer();
-		builder.Services.AddSwaggerGen();
+		// builder.Services.AddEndpointsApiExplorer();
+		// builder.Services.AddSwaggerGen();
 
 		_app = builder.Build();
-
+		// _app.UseAuthentication();
 		_app.UseExceptionHandler(exceptionHandlerApp =>
 		{
 			exceptionHandlerApp.Run(async context =>
@@ -70,7 +71,14 @@ public sealed class Program
 			});
 		});
 
-		_app.UseHsts();
+		// _app.UseHsts();
+
+		// _app.UseAuthorization();
+		// _app.UseRouting();
+		// _app.UseStaticFiles();
+		// _app.UseHttpsRedirection();
+		// _app.UseAuthorization();
+		// App.MapControllers();
 
 		using var loggerFactory = LoggerFactory.Create(b =>
 		{
@@ -81,44 +89,48 @@ public sealed class Program
 
 		// Configure the HTTP request pipeline.
 		if (_app.Environment.IsDevelopment()) {
-			_app.UseSwagger();
-			_app.UseSwaggerUI();
+			// _app.UseSwagger();
+			// _app.UseSwaggerUI();
 		}
-
-		_app.UseHttpsRedirection();
-		// app.UseAuthorization();
-		// App.MapControllers();
 
 		_app.MapPost("/Play", PlayAsync);
 		_app.MapPost("/Stop", (StopAsync));
 		_app.MapGet("/Status", (StatusAsync));
 		_app.MapGet("/List", (ListAsync));
-		
+
 		_logger.LogDebug("dbg");
 
 		await _app.RunAsync();
 	}
 
-	#region 
+	#region
+
+	static string tosb<T>(IEnumerable<T> t, Func<T, string> x)
+	{
+		var sb = new StringBuilder();
+
+		foreach (T v in t) {
+			sb.AppendLine(x(v));
+		}
+
+		return sb.ToString();
+	}
 
 	private static async Task ListAsync(HttpContext ctx)
 	{
-		ctx.Response.ContentType = FileType.MT_TEXT_PLAIN;
+		ctx.Response.ContentType = Text.Plain;
 
-		foreach (SoundItem soundItem in Sounds) {
-			await ctx.Response.WriteAsync($"{soundItem}\n", Util.Encoding);
-
-		}
+		await ctx.Response.WriteAsync(tosb(Sounds, item => $"{item}"), Util.Encoding);
 
 		await ctx.Response.CompleteAsync();
 	}
 
 	private static async Task StopAsync(HttpContext context)
 	{
-		var ss   = await ReadBody(context);
+		var ss   = await context.ReadBodyEntriesAsync();
 		var snds = FindSounds(ss);
 
-		context.Response.ContentType = FileType.MT_TEXT_PLAIN;
+		context.Response.ContentType = Text.Plain;
 
 		foreach (var si in snds) {
 			si.Stop();
@@ -133,15 +145,13 @@ public sealed class Program
 
 	private static async Task StatusAsync(HttpContext context)
 	{
-		var ss   = await ReadBody(context);
+		var ss   = await context.ReadBodyEntriesAsync();
 		var snds = FindSounds(ss);
 
-		context.Response.ContentType = FileType.MT_TEXT_PLAIN;
+		context.Response.ContentType = Text.Plain;
 
 		foreach (var si in snds) {
-
 			await context.Response.WriteAsync($"{si}\n", Util.Encoding);
-
 		}
 
 		await context.Response.CompleteAsync();
@@ -150,10 +160,10 @@ public sealed class Program
 	private static async Task PlayAsync(HttpContext context)
 	{
 		// string audioFilePath = @"H:\Other Music\Audio resources\NMicspam\ow.wav"; // Change this to the path of your audio file
-		var ss   = await ReadBody(context);
+		var ss   = await context.ReadBodyEntriesAsync();
 		var snds = FindSounds(ss);
 
-		context.Response.ContentType = FileType.MT_TEXT_PLAIN;
+		context.Response.ContentType = Text.Plain;
 
 		foreach (var si in snds) {
 			ThreadPool.QueueUserWorkItem((x) =>
@@ -171,17 +181,6 @@ public sealed class Program
 	}
 
 	#endregion
-
-	private static async Task<string[]> ReadBody(HttpContext c)
-	{
-		var b = await c.ReadBodyAsync();
-
-		if (string.IsNullOrEmpty(b)) {
-			return Array.Empty<string>();
-		}
-
-		return b.Split(',');
-	}
 
 	private static IEnumerable<SoundItem> FindSounds(IEnumerable<string> sounds)
 	{

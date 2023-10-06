@@ -1,0 +1,1 @@
+dotnet run --project .\NWave.Server\ --urls "http://0.0.0.0:60900"
