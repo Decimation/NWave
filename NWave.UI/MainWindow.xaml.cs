@@ -1,4 +1,6 @@
-﻿using System;
+﻿global using CMN = System.Runtime.CompilerServices.CallerMemberNameAttribute;
+global using MNNW = System.Diagnostics.CodeAnalysis.MemberNotNullWhenAttribute;
+using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
@@ -83,6 +85,7 @@ public partial class MainWindow : Window, INotifyPropertyChanged
 	private WindowInteropHelper m_h;
 
 	private HwndSource m_wnd;
+
 	public SoundItem? Selected
 	{
 		get => m_selected;
@@ -94,19 +97,19 @@ public partial class MainWindow : Window, INotifyPropertyChanged
 		}
 	}
 
-	[MemberNotNullWhen(true, nameof(Selected))]
+	[MNNW(true, nameof(Selected))]
 	public bool HasSelected => Lv_Sounds.SelectedIndex != -1;
 
 	public ObservableCollection<SoundItem> Sounds { get; }
 
 	public event PropertyChangedEventHandler? PropertyChanged;
 
-	protected virtual void OnPropertyChanged([CallerMemberName] string? propertyName = null)
+	protected virtual void OnPropertyChanged([CMN] string? propertyName = null)
 	{
 		PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
 	}
 
-	protected bool SetField<T>(ref T field, T value, [CallerMemberName] string? propertyName = null)
+	protected bool SetField<T>(ref T field, T value, [CMN] string? propertyName = null)
 	{
 		if (EqualityComparer<T>.Default.Equals(field, value)) return false;
 		field = value;
@@ -128,7 +131,7 @@ public partial class MainWindow : Window, INotifyPropertyChanged
 
 	private const int DEVICE_INDEX = 3;
 
-	public const int HOOK_ID = 9000;
+	public const int HOOK_ID  = 9000;
 	public const int HOOK_ID1 = 9001;
 	public const int HOOK_ID2 = 9002;
 
@@ -155,6 +158,7 @@ public partial class MainWindow : Window, INotifyPropertyChanged
 						if (vkey == (uint) VirtualKey.KEY_P) {
 							//handle global hot key here...
 							Debug.Print($"{vkey}!!");
+
 							Dispatcher.BeginInvoke(() =>
 							{
 
@@ -165,10 +169,9 @@ public partial class MainWindow : Window, INotifyPropertyChanged
 						handled = true;
 						break;
 					case HOOK_ID1:
-						int vkey1 = (((int)lParam >> 16) & 0xFFFF);
+						int vkey1 = (((int) lParam >> 16) & 0xFFFF);
 
-						if (vkey1 == (uint)VirtualKey.UP)
-						{
+						if (vkey1 == (uint) VirtualKey.UP) {
 							//handle global hot key here...
 							Debug.Print($"{vkey1}!!");
 							Lv_Sounds.SelectedIndex--;
@@ -177,10 +180,9 @@ public partial class MainWindow : Window, INotifyPropertyChanged
 						handled = true;
 						break;
 					case HOOK_ID2:
-						int vkey2 = (((int)lParam >> 16) & 0xFFFF);
+						int vkey2 = (((int) lParam >> 16) & 0xFFFF);
 
-						if (vkey2 == (uint)VirtualKey.DOWN)
-						{
+						if (vkey2 == (uint) VirtualKey.DOWN) {
 							//handle global hot key here...
 							Debug.Print($"{vkey2}!!");
 							Lv_Sounds.SelectedIndex++;
@@ -207,7 +209,7 @@ public partial class MainWindow : Window, INotifyPropertyChanged
 		                      (uint) VirtualKey.KEY_P);
 
 		Native.RegisterHotKey(m_h.Handle, HOOK_ID1, HotKeyModifiers.MOD_CONTROL | HotKeyModifiers.MOD_SHIFT,
-		                      (uint)VirtualKey.UP);
+		                      (uint) VirtualKey.UP);
 
 		Native.RegisterHotKey(m_h.Handle, HOOK_ID2, HotKeyModifiers.MOD_CONTROL | HotKeyModifiers.MOD_SHIFT,
 		                      (uint) VirtualKey.DOWN);
@@ -260,6 +262,7 @@ public partial class MainWindow : Window, INotifyPropertyChanged
 					Sounds.Remove(Selected);
 
 				}
+
 				break;
 		}
 
