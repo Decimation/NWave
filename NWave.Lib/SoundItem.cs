@@ -60,7 +60,7 @@ public class SoundItem : INotifyPropertyChanged, IDisposable
 		if (Status == PlaybackStatus.Playing) {
 			Pause();
 		}
-		else if (Status == PlaybackStatus.Paused || Status == PlaybackStatus.Stopped || Status == PlaybackStatus.None) {
+		else if (Status is PlaybackStatus.Paused or PlaybackStatus.Stopped or PlaybackStatus.None) {
 			Play();
 		}
 	}

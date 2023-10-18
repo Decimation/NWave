@@ -2,6 +2,7 @@ using System.Collections.Concurrent;
 using System.Net;
 using System.Text;
 using System.Text.RegularExpressions;
+using Kantan.Text;
 using Microsoft.AspNetCore.Diagnostics;
 using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Server.Kestrel.Core;
@@ -47,6 +48,7 @@ public sealed class Program
 		builder.Services.AddRazorPages();
 
 		_app = builder.Build();
+
 		// _app.UseAuthentication();
 		_app.UseExceptionHandler(exceptionHandlerApp =>
 		{
@@ -121,15 +123,23 @@ public sealed class Program
 	{
 		ctx.Response.ContentType = Text.Plain;
 
-		await ctx.Response.WriteAsync(tosb(Sounds, item => $"{item}"), Util.Encoding);
+		await ctx.Response.WriteAsync(tosb(Sounds, item => $"{item.Name}"), Util.Encoding);
 
 		await ctx.Response.CompleteAsync();
 	}
 
 	private static async Task StopAsync(HttpContext context)
 	{
-		var ss   = await context.ReadBodyEntriesAsync();
-		var snds = FindSounds(ss);
+		var                    ss = await context.ReadBodyEntriesAsync();
+		IEnumerable<SoundItem> snds;
+
+		if (ss.Length != 0) {
+			snds = FindSounds(ss);
+
+		}
+		else {
+			snds = Sounds.Where(s => s.Status == PlaybackStatus.Playing);
+		}
 
 		context.Response.ContentType = Text.Plain;
 
@@ -146,8 +156,15 @@ public sealed class Program
 
 	private static async Task StatusAsync(HttpContext context)
 	{
-		var ss   = await context.ReadBodyEntriesAsync();
-		var snds = FindSounds(ss);
+		var                    ss = await context.ReadBodyEntriesAsync();
+		IEnumerable<SoundItem> snds;
+
+		if (ss.Length != 0) {
+			snds = FindSounds(ss);
+		}
+		else {
+			snds = Sounds.Where(s => s.Status != PlaybackStatus.None && s.Status != PlaybackStatus.Stopped);
+		}
 
 		context.Response.ContentType = Text.Plain;
 
@@ -161,9 +178,10 @@ public sealed class Program
 	private static async Task PlayAsync(HttpContext context)
 	{
 		// string audioFilePath = @"H:\Other Music\Audio resources\NMicspam\ow.wav"; // Change this to the path of your audio file
-		var ss   = await context.ReadBodyEntriesAsync();
+		var ss = await context.ReadBodyEntriesAsync();
+		_logger.LogInformation("Request {Sounds}", ss.QuickJoin());
 		var snds = FindSounds(ss);
-
+		_logger.LogInformation("Found {Sounds}", snds.Count());
 		context.Response.ContentType = Text.Plain;
 
 		foreach (var si in snds) {
@@ -183,8 +201,30 @@ public sealed class Program
 
 	#endregion
 
+	private static List<SoundItem> FindSounds2(IEnumerable<string> sounds)
+	{
+		var ls = new List<SoundItem>();
+
+		foreach (string s in sounds) {
+			foreach (var s1 in Sounds) {
+				if (s1.Name.Contains(s, StringComparison.InvariantCultureIgnoreCase)) {
+
+					// yield return s1;
+
+					ls.Add(s1);
+				}
+
+			}
+		}
+
+		return ls;
+	}
+
+	private const string ALL = "*";
+
 	private static IEnumerable<SoundItem> FindSounds(IEnumerable<string> sounds)
 	{
+
 		foreach (string s1 in sounds) {
 
 			var si = FindSound(s1);
