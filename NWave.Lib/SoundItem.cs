@@ -1,8 +1,10 @@
 ﻿// Read S NWave.UI SoundStatus.cs
 // 2023-09-28 @ 9:05 PM
 
+#nullable disable
 using System.ComponentModel;
 using System.Runtime.CompilerServices;
+using JetBrains.Annotations;
 using NAudio.Wave;
 
 namespace NWave.Lib;
@@ -15,7 +17,7 @@ public class SoundItem : INotifyPropertyChanged, IDisposable
 
 	private PlaybackStatus m_status;
 
-	public AudioFileReader FileReader { get; }
+	public AudioFileReader FileReader { get; private set; }
 
 	public PlaybackStatus Status
 	{
@@ -28,12 +30,18 @@ public class SoundItem : INotifyPropertyChanged, IDisposable
 		}
 	}
 
-	public WaveOutEvent Out { get; set; }
+	public WaveOutEvent Out { get; private set; }
 
 	public int DeviceIndex { get; }
 
+	public bool IsDisposed { get; private set; }
+
 	public SoundItem(string fullName, int idx)
 	{
+		if (!File.Exists(fullName)) {
+			throw new FileNotFoundException();
+		}
+
 		FullName    = fullName;
 		Name        = Path.GetFileName(FullName);
 		Status      = PlaybackStatus.None;
@@ -60,19 +68,22 @@ public class SoundItem : INotifyPropertyChanged, IDisposable
 		if (Status == PlaybackStatus.Playing) {
 			Pause();
 		}
-		else if (Status is PlaybackStatus.Paused or PlaybackStatus.Stopped or PlaybackStatus.None) {
+		else if (Status.IsPlayable()) {
 			Play();
 		}
 	}
 
 	public void Pause()
 	{
+		CheckDisposed();
 		Status = PlaybackStatus.Paused;
 		Out.Pause();
 	}
 
 	public void Play()
 	{
+		CheckDisposed();
+
 		if (Status == PlaybackStatus.Stopped) {
 			FileReader.Position = 0;
 		}
@@ -83,6 +94,7 @@ public class SoundItem : INotifyPropertyChanged, IDisposable
 
 	public void Stop()
 	{
+		CheckDisposed();
 		Out.Stop();
 		// Dispose();
 	}
@@ -102,17 +114,29 @@ public class SoundItem : INotifyPropertyChanged, IDisposable
 		return true;
 	}
 
+	private void CheckDisposed()
+	{
+		if (IsDisposed) {
+			throw new ObjectDisposedException($"{Name}", "Disposed");
+
+		}
+	}
+
 	public void Dispose()
 	{
 		Stop();
 		Out.PlaybackStopped -= OnHandler;
 		Out.Dispose();
+		Out = null;
 		FileReader.Dispose();
+		FileReader = null;
+		IsDisposed = true;
+
 	}
 
 	public override string ToString()
 	{
-		return $"{Name} : {Status}";
+		return $"{Name} | {Status} | {DeviceIndex}";
 	}
 }
 

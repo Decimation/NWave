@@ -5,6 +5,7 @@ using System.Text.RegularExpressions;
 using Kantan.Text;
 using Microsoft.AspNetCore.Diagnostics;
 using Microsoft.AspNetCore.Http.HttpResults;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Server.Kestrel.Core;
 using Microsoft.Extensions.Logging.Console;
 using NAudio.Wave;
@@ -16,27 +17,24 @@ namespace NWave.Server;
 
 public sealed class Program
 {
-	private const string HDR_SOUND    = "s";
 	private const int    DEVICE_INDEX = 3;
 	private const string SOUNDS       = @"H:\Other Music\Audio resources\NMicspam\";
-
-	private static readonly ConcurrentBag<SoundItem> Sounds;
 
 	private static WebApplication   _app;
 	private static ILogger<Program> _logger;
 
+	private static readonly SoundLibrary _sndlib;
+
 	static Program()
 	{
-		var files = Directory.EnumerateFiles(SOUNDS, searchPattern: "*.*", new EnumerationOptions()
-		{
-			RecurseSubdirectories = true
-		});
+		_sndlib = new SoundLibrary();
 
-		Sounds = new ConcurrentBag<SoundItem>(files.Select(x => new SoundItem(x, DEVICE_INDEX)));
 	}
 
 	public static async Task Main(string[] args)
 	{
+		_sndlib.InitDirectory(SOUNDS, DEVICE_INDEX);
+
 		var builder = WebApplication.CreateBuilder(args);
 
 		// Add services to the container.
@@ -45,11 +43,12 @@ public sealed class Program
 		// Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 		// builder.Services.AddEndpointsApiExplorer();
 		// builder.Services.AddSwaggerGen();
-		builder.Services.AddRazorPages();
+		// builder.Services.AddRazorPages();
 
 		_app = builder.Build();
 
 		// _app.UseAuthentication();
+		/*
 		_app.UseExceptionHandler(exceptionHandlerApp =>
 		{
 			exceptionHandlerApp.Run(async context =>
@@ -71,9 +70,25 @@ public sealed class Program
 				if (exceptionHandlerPathFeature?.Path == "/") {
 					await context.Response.WriteAsync(" Page: Home.");
 				}
+
+			});
+		});
+		*/
+
+		_app.UseExceptionHandler(exceptionHandlerApp =>
+		{
+			exceptionHandlerApp.Run(async context =>
+			{
+
+				await Results.Problem().ExecuteAsync(context);
 			});
 		});
 
+		_app.Map("/exception", () =>
+		{
+			throw new InvalidOperationException("Sample Exception");
+		});
+		;
 		// _app.UseHsts();
 
 		// _app.UseAuthorization();
@@ -100,6 +115,8 @@ public sealed class Program
 		_app.MapPost("/Stop", (StopAsync));
 		_app.MapGet("/Status", (StatusAsync));
 		_app.MapGet("/List", (ListAsync));
+		_app.MapPost("/Add", AddAsync);
+		_app.MapPost("/Remove", RemoveAsync);
 
 		_logger.LogDebug("dbg");
 
@@ -108,80 +125,66 @@ public sealed class Program
 
 	#region
 
-	static string tosb<T>(IEnumerable<T> t, Func<T, string> x)
+	/// <summary>
+	/// <list type="bullet">
+	/// <item>Body: multiple [absolute file path]</item>
+	/// </list>
+	/// </summary>
+	private static async Task AddAsync(HttpContext ctx)
 	{
-		var sb = new StringBuilder();
-
-		foreach (T v in t) {
-			sb.AppendLine(x(v));
-		}
-
-		return sb.ToString();
-	}
-
-	private static async Task ListAsync(HttpContext ctx)
-	{
+		var bodyEntries = await ctx.ReadBodyEntriesAsync();
 		ctx.Response.ContentType = Text.Plain;
 
-		await ctx.Response.WriteAsync(tosb(Sounds, item => $"{item.Name}"), Util.Encoding);
+		foreach (var s in bodyEntries) {
+			if (!File.Exists(s)) {
+				await ctx.Response.WriteAsync($"{s}: not found\n", ServerUtil.Encoding);
+				continue;
+			}
+
+			var si = new SoundItem(s, DEVICE_INDEX);
+
+			var b = _sndlib.TryAdd(si);
+			await ctx.Response.WriteAsync($"{si}: {b}\n", ServerUtil.Encoding);
+			_logger.LogInformation("Added {Sound}: {OK}", si, b);
+		}
 
 		await ctx.Response.CompleteAsync();
 	}
 
-	private static async Task StopAsync(HttpContext context)
+	/// <summary>
+	/// <list type="bullet">
+	/// <item>Body: single [regex pattern]</item>
+	/// <item>Body: multiple [name contains]</item>
+	/// </list>
+	/// </summary>
+	private static async Task RemoveAsync(HttpContext ctx)
 	{
-		var                    ss = await context.ReadBodyEntriesAsync();
-		IEnumerable<SoundItem> snds;
+		ctx.Response.ContentType = Text.Plain;
 
-		if (ss.Length != 0) {
-			snds = FindSounds(ss);
+		var snds = await GetSoundsByHeader(ctx, MODE_REGEX);
 
-		}
-		else {
-			snds = Sounds.Where(s => s.Status == PlaybackStatus.Playing);
-		}
+		foreach (SoundItem snd in snds) {
 
-		context.Response.ContentType = Text.Plain;
-
-		foreach (var si in snds) {
-			si.Stop();
-			await context.Response.WriteAsync($"{si}\n", Util.Encoding);
-			_logger.LogInformation("Stopped {Sound}", si);
+			var b = _sndlib.TryRemove(snd);
+			await ctx.Response.WriteAsync($"{snd}: {b}\n", ServerUtil.Encoding);
+			_logger.LogInformation("Removed {Sound}: {OK}", snd, b);
 
 		}
 
-		await context.Response.CompleteAsync();
-
+		await ctx.Response.CompleteAsync();
 	}
 
-	private static async Task StatusAsync(HttpContext context)
-	{
-		var                    ss = await context.ReadBodyEntriesAsync();
-		IEnumerable<SoundItem> snds;
-
-		if (ss.Length != 0) {
-			snds = FindSounds(ss);
-		}
-		else {
-			snds = Sounds.Where(s => s.Status != PlaybackStatus.None && s.Status != PlaybackStatus.Stopped);
-		}
-
-		context.Response.ContentType = Text.Plain;
-
-		foreach (var si in snds) {
-			await context.Response.WriteAsync($"{si}\n", Util.Encoding);
-		}
-
-		await context.Response.CompleteAsync();
-	}
-
+	/// <summary>
+	/// <list type="bullet">
+	/// <item>Body: single [regex pattern]</item>
+	/// <item>Body: multiple [name contains]</item>
+	/// </list>
+	/// </summary>
 	private static async Task PlayAsync(HttpContext context)
 	{
 		// string audioFilePath = @"H:\Other Music\Audio resources\NMicspam\ow.wav"; // Change this to the path of your audio file
-		var ss = await context.ReadBodyEntriesAsync();
-		_logger.LogInformation("Request {Sounds}", ss.QuickJoin());
-		var snds = FindSounds(ss);
-		_logger.LogInformation("Found {Sounds}", snds.Count());
+		var snds = await GetSoundsByHeader(context, MODE_REGEX);
+
 		context.Response.ContentType = Text.Plain;
 
 		foreach (var si in snds) {
@@ -191,7 +194,7 @@ public sealed class Program
 				si.Play();
 			});
 
-			await context.Response.WriteAsync($"{si} playing\n", Util.Encoding);
+			await context.Response.WriteAsync($"{si} playing\n", ServerUtil.Encoding);
 
 		}
 
@@ -199,45 +202,94 @@ public sealed class Program
 
 	}
 
+	/// <summary>
+	/// <list type="bullet">
+	/// <item>Body: single [regex pattern]</item>
+	/// <item>Body: multiple [name contains]</item>
+	/// </list>
+	/// </summary>
+	private static async Task StopAsync(HttpContext context)
+	{
+		var snds = await GetSoundsByHeader(context, MODE_REGEX);
+
+		context.Response.ContentType = Text.Plain;
+
+		foreach (var si in snds) {
+			si.Stop();
+			await context.Response.WriteAsync($"{si}\n", ServerUtil.Encoding);
+			_logger.LogInformation("Stopped {Sound}", si);
+
+		}
+
+		await context.Response.CompleteAsync();
+
+	}
+
+	/// <summary>
+	/// <list type="bullet">
+	/// <item>Body: none</item>
+	/// </list>
+	/// </summary>
+	private static async Task ListAsync(HttpContext ctx)
+	{
+		ctx.Response.ContentType = Text.Plain;
+
+		foreach ((var key, var _) in _sndlib.Sounds) {
+			await ctx.Response.WriteAsync($"{key}\n", ServerUtil.Encoding);
+
+		}
+
+		await ctx.Response.CompleteAsync();
+	}
+
+	/// <summary>
+	/// <list type="bullet">
+	/// <item>Body: none</item>
+	/// </list>
+	/// </summary>
+	private static async Task StatusAsync(HttpContext context)
+	{
+
+		IEnumerable<SoundItem> snds = await GetSoundsByHeader(context);
+
+		context.Response.ContentType = Text.Plain;
+
+		foreach (var si in snds) {
+			await context.Response.WriteAsync($"{si}\n", ServerUtil.Encoding);
+		}
+
+		await context.Response.CompleteAsync();
+	}
+
+	public const string MODE_SIMPLE = "Simple";
+	public const string MODE_REGEX  = "Regex";
+	public const string HDR_MODE    = "Mode";
+
+	private static async Task<IEnumerable<SoundItem>> GetSoundsByHeader(HttpContext context, string moded = MODE_REGEX)
+	{
+		var bodyEntries = await context.ReadBodyEntriesAsync();
+
+		IEnumerable<SoundItem> snds;
+
+		var b = context.Request.Headers.TryGetValue(HDR_MODE, out var e);
+
+		var mode = b ? e[0] : moded;
+
+		switch (mode) {
+			case MODE_REGEX:
+				snds = _sndlib.FindByPattern(bodyEntries[0]);
+				break;
+			case MODE_SIMPLE:
+				snds = _sndlib.FindSoundsByNames(bodyEntries);
+				break;
+			default:
+				goto case MODE_SIMPLE;
+		}
+
+		return snds;
+	}
+
 	#endregion
 
-	private static List<SoundItem> FindSounds2(IEnumerable<string> sounds)
-	{
-		var ls = new List<SoundItem>();
-
-		foreach (string s in sounds) {
-			foreach (var s1 in Sounds) {
-				if (s1.Name.Contains(s, StringComparison.InvariantCultureIgnoreCase)) {
-
-					// yield return s1;
-
-					ls.Add(s1);
-				}
-
-			}
-		}
-
-		return ls;
-	}
-
 	private const string ALL = "*";
-
-	private static IEnumerable<SoundItem> FindSounds(IEnumerable<string> sounds)
-	{
-
-		foreach (string s1 in sounds) {
-
-			var si = FindSound(s1);
-
-			if (si != null) {
-				yield return si;
-
-			}
-		}
-	}
-
-	private static SoundItem? FindSound(string s)
-	{
-		return Sounds.FirstOrDefault(x => x.Name.Contains(s, StringComparison.InvariantCultureIgnoreCase));
-	}
 }

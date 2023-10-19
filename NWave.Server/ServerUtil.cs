@@ -5,17 +5,18 @@ using Novus.FileTypes;
 using System.Buffers;
 using System.Net.Mime;
 using System.Text;
+using static System.Windows.Forms.VisualStyles.VisualStyleElement;
 
 namespace NWave.Server;
 
-public static class Util
+public static class ServerUtil
 {
-	public const int BUF_LEN_DEFAULT = 4096;
+	public const int BUF_LEN_DEFAULT = 0x4000;
 
 	public static Encoding Encoding { get; set; } = Encoding.UTF8;
 
 	public static async Task<string> ReadBodyTextAsync(Stream body, int bufLen = BUF_LEN_DEFAULT,
-	                                               CancellationToken c = default)
+	                                                   CancellationToken c = default)
 	{
 		// Build up the request body in a string builder.
 		var builder = new StringBuilder();
@@ -70,5 +71,16 @@ public static class Util
 		}
 
 		return b.Split(',');
+	}
+
+	public static string BuildString<T>(IEnumerable<T> t, Func<T, string> x)
+	{
+		var sb = new StringBuilder();
+
+		foreach (T v in t) {
+			sb.AppendLine(x(v));
+		}
+
+		return sb.ToString();
 	}
 }
