@@ -2,6 +2,8 @@ using System.Collections.Concurrent;
 using System.Net;
 using System.Text;
 using System.Text.RegularExpressions;
+using CliWrap;
+using Flurl;
 using Kantan.Text;
 using Microsoft.AspNetCore.Diagnostics;
 using Microsoft.AspNetCore.Http.HttpResults;
@@ -117,6 +119,7 @@ public sealed class Program
 		_app.MapGet("/List", (ListAsync));
 		_app.MapPost("/Add", AddAsync);
 		_app.MapPost("/Remove", RemoveAsync);
+		_app.MapPost("/AddYouTube", AddYouTubeAudioAsync);
 
 		_logger.LogDebug("dbg");
 
@@ -161,7 +164,7 @@ public sealed class Program
 	{
 		ctx.Response.ContentType = Text.Plain;
 
-		var snds = await GetSoundsByHeader(ctx, MODE_REGEX);
+		var snds = await GetSoundsByHeader(ctx, MODE_SIMPLE);
 
 		foreach (SoundItem snd in snds) {
 
@@ -183,7 +186,7 @@ public sealed class Program
 	private static async Task PlayAsync(HttpContext context)
 	{
 		// string audioFilePath = @"H:\Other Music\Audio resources\NMicspam\ow.wav"; // Change this to the path of your audio file
-		var snds = await GetSoundsByHeader(context, MODE_REGEX);
+		var snds = await GetSoundsByHeader(context, MODE_SIMPLE);
 
 		context.Response.ContentType = Text.Plain;
 
@@ -210,7 +213,7 @@ public sealed class Program
 	/// </summary>
 	private static async Task StopAsync(HttpContext context)
 	{
-		var snds = await GetSoundsByHeader(context, MODE_REGEX);
+		var snds = await GetSoundsByHeader(context, MODE_SIMPLE);
 
 		context.Response.ContentType = Text.Plain;
 
@@ -220,6 +223,17 @@ public sealed class Program
 			_logger.LogInformation("Stopped {Sound}", si);
 
 		}
+
+		await context.Response.CompleteAsync();
+
+	}
+
+	private static async Task AddYouTubeAudioAsync(HttpContext context)
+	{
+		context.Response.ContentType = Text.Plain;
+		var b    = await context.ReadBodyTextAsync();
+		var ok = await _sndlib.AddYouTubeAudioAsync(b, DEVICE_INDEX);
+		await context.Response.WriteAsync($"{b} : {ok}", ServerUtil.Encoding);
 
 		await context.Response.CompleteAsync();
 
@@ -259,7 +273,7 @@ public sealed class Program
 		ctx.Response.ContentType = Text.Plain;
 
 		foreach ((var key, var _) in _sndlib.Sounds) {
-			await ctx.Response.WriteAsync($"{key}\n", ServerUtil.Encoding);
+			await ctx.Response.WriteAsync($"{key.Name}\n", ServerUtil.Encoding);
 
 		}
 
@@ -270,7 +284,7 @@ public sealed class Program
 	public const string MODE_REGEX  = "Regex";
 	public const string HDR_MODE    = "Mode";
 
-	private static async Task<IEnumerable<SoundItem>> GetSoundsByHeader(HttpContext context, string moded = MODE_REGEX)
+	private static async Task<IEnumerable<SoundItem>> GetSoundsByHeader(HttpContext context, string moded = MODE_SIMPLE)
 	{
 		var bodyEntries = await context.ReadBodyEntriesAsync();
 
@@ -280,9 +294,10 @@ public sealed class Program
 
 		var mode = b ? e[0] : moded;
 
-		if (bodyEntries.Length==0) {
+		if (bodyEntries.Length == 0) {
 			mode = MODE_SIMPLE;
 		}
+
 		switch (mode) {
 			case MODE_REGEX:
 				snds = _sndlib.FindByPattern(bodyEntries[0]);

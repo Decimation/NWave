@@ -5,6 +5,8 @@ using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
+using CliWrap;
+using Flurl;
 using JetBrains.Annotations;
 
 namespace NWave.Lib;
@@ -15,8 +17,11 @@ public class SoundLibrary : IDisposable
 {
 	public ConcurrentDictionary<SoundItem, object> Sounds { get; } = new();
 
+	public string RootDir { get; private set; }
+
 	public bool InitDirectory(string dir, int di)
 	{
+		RootDir = dir;
 		IEnumerable<string> files = EnumerateDirectory(dir);
 
 		var items = files.Select(x => new SoundItem(x, di));
@@ -36,6 +41,58 @@ public class SoundLibrary : IDisposable
 			RecurseSubdirectories = true
 		});
 		return files;
+	}
+
+	public async Task<bool> AddYouTubeAudioAsync(string u, int di)
+	{
+		var y = await GetYouTubeAudioAsync(u, RootDir);
+		
+		if (!string.IsNullOrWhiteSpace(y)) {
+			return TryAdd(new SoundItem(y, di));
+		}
+
+		return false;
+	}
+
+	public static async Task<string> GetYouTubeAudioAsync(string u, string p, CancellationToken c = default)
+	{
+		var stderr = new StringBuilder();
+		var stdout = new StringBuilder();
+		p = Path.TrimEndingDirectorySeparator(p);
+		var task = CliWrap.Cli.Wrap("yt-dlp")
+			.WithArguments($"--print after_move:filepath -x \"{u}\" --audio-format wav -P \"{p}\"")
+			.WithStandardErrorPipe(PipeTarget.ToStringBuilder(stderr))
+			.WithStandardOutputPipe(PipeTarget.ToStringBuilder(stdout))
+			.WithValidation(CommandResultValidation.None)
+			.ExecuteAsync(c);
+
+		var res = await task;
+
+		if (res.ExitCode == 0) {
+			return (stdout.ToString()).Trim('\n');
+		}
+
+		return null;
+	}
+
+	public static async Task<Url[]> GetYouTubeDataUrlsAsync(string u, CancellationToken c = default)
+	{
+		var stderr = new StringBuilder();
+		var stdout = new StringBuilder();
+
+		var task = CliWrap.Cli.Wrap("yt-dlp").WithArguments($"--get-url {u}")
+			.WithStandardErrorPipe(PipeTarget.ToStringBuilder(stderr))
+			.WithStandardOutputPipe(PipeTarget.ToStringBuilder(stdout))
+			.ExecuteAsync(c);
+
+		var res = await task;
+
+		if (res.ExitCode == 0) {
+			var urls1 = stdout.ToString().Split('\n').Select(x => (Url) x).ToArray();
+			return urls1;
+		}
+
+		return null;
 	}
 
 	public IEnumerable<SoundItem> FindSoundsByNames(IEnumerable<string> rnames)

@@ -17,7 +17,7 @@ public class SoundItem : INotifyPropertyChanged, IDisposable
 
 	private PlaybackStatus m_status;
 
-	public AudioFileReader FileReader { get; private set; }
+	public AudioFileReader Provider { get; private set; }
 
 	public PlaybackStatus Status
 	{
@@ -30,7 +30,7 @@ public class SoundItem : INotifyPropertyChanged, IDisposable
 		}
 	}
 
-	public WaveOutEvent Out { get; private set; }
+	public IWavePlayer Out { get; private set; }
 
 	public int DeviceIndex { get; }
 
@@ -52,10 +52,14 @@ public class SoundItem : INotifyPropertyChanged, IDisposable
 			DeviceNumber = DeviceIndex
 		};
 		Out.PlaybackStopped += OnHandler;
-		FileReader          =  new AudioFileReader(FullName);
 
-		Out.Init(FileReader);
+		Provider = new AudioFileReader(FullName);
+
+		Out.Init(Provider);
+
 	}
+
+	protected virtual void Init_() { }
 
 	private void OnHandler(object? sender, StoppedEventArgs args)
 	{
@@ -85,7 +89,7 @@ public class SoundItem : INotifyPropertyChanged, IDisposable
 		CheckDisposed();
 
 		if (Status == PlaybackStatus.Stopped) {
-			FileReader.Position = 0;
+			Provider.Position = 0;
 		}
 
 		Status = PlaybackStatus.Playing;
@@ -128,8 +132,8 @@ public class SoundItem : INotifyPropertyChanged, IDisposable
 		Out.PlaybackStopped -= OnHandler;
 		Out.Dispose();
 		Out = null;
-		FileReader.Dispose();
-		FileReader = null;
+		Provider.Dispose();
+		Provider   = null;
 		IsDisposed = true;
 
 	}

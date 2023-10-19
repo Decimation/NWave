@@ -87,14 +87,18 @@ def add(b):
     re= req('POST', 'Add', data=b)
     return re
         
-
+def add2(b):
+    re= req('POST', 'AddYouTube', data=b)
+    return re
 
 def sounds():
     re = req('GET', 'List')
     rg = re.split('\n')
     return rg
 
-
+def update_output2(x):
+    update_output1(x)
+    update_sounds()
 
 def update_output1(x):
     window[output_].update(x.result())
@@ -104,9 +108,10 @@ def update_output1(x):
 def update_sounds():
     global g_sounds
     global window
+    g_sounds = sounds()
     if window:
         window['lb'].update(g_sounds)
-    g_sounds = sounds()
+    
 
 def main():
     global window
@@ -122,7 +127,7 @@ def main():
         [sg.InputText(key='in', size=(50, 1))],
         [sg.Text(f"...", key=output_)],
         [sg.Text(f"...", key=output_2)],
-        [sg.Button("Play", key='b_Play'), sg.Button("Stop", key='b_Stop'),sg.Button("Add", key='b_Add'),sg.Button("List", key='b_List')]
+        [sg.Button("Play", key='b_Play'), sg.Button("Stop", key='b_Stop'),sg.Button("Add", key='b_Add'),sg.Button("Add YT", key='b_Add2'),sg.Button("List", key='b_List')]
     ]
     window = sg.Window('PiCore', layout)
     
@@ -149,11 +154,18 @@ def main():
             # lb_ = values['lb'][0][1]
             f2 = tp.submit(stop, get_snds(values))
             f2.add_done_callback(update_output1)
+            
         if event == 'b_Add':
             # lb_ = values['lb'][0][1]
             f3 = tp.submit(add, values['in'])
-            f3.add_done_callback(update_output1)
+            f3.add_done_callback(update_output2)
         
+        if event == 'b_Add2':
+            # lb_ = values['lb'][0][1]
+            f3 = tp.submit(add2, values['in'])
+            f3.add_done_callback(update_output2)
+            
+
         if event == 'b_List':
             # lb_ = values['lb'][0][1]
             f3 = tp.submit(update_sounds)
