@@ -40,15 +40,25 @@ public class SoundLibrary : IDisposable
 
 	public IEnumerable<SoundItem> FindSoundsByNames(IEnumerable<string> rnames)
 	{
-		foreach (string s1 in rnames) {
+		var s1s = rnames as string[] ?? rnames.ToArray();
+
+		if (s1s.Length == 0) {
+			return Sounds.Keys.AsEnumerable();
+		}
+
+		var buf = new List<SoundItem>(s1s.Length);
+
+		foreach (string s1 in s1s) {
 
 			var si = FindSoundByName(s1);
 
 			if (si != null) {
-				yield return si;
+				buf.Add(si);
 
 			}
 		}
+
+		return buf;
 	}
 
 	public IEnumerable<SoundItem> FindByPattern(string pattern)

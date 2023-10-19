@@ -230,6 +230,30 @@ public sealed class Program
 	/// <item>Body: none</item>
 	/// </list>
 	/// </summary>
+	private static async Task StatusAsync(HttpContext context)
+	{
+
+		IEnumerable<SoundItem> snds = await GetSoundsByHeader(context);
+		snds = snds.Where(s => s.Status.IsIndeterminate()).ToArray();
+
+		context.Response.ContentType = Text.Plain;
+
+		if (!snds.Any()) {
+			await context.Response.WriteAsync("---");
+		}
+
+		foreach (var si in snds) {
+			await context.Response.WriteAsync($"{si}\n", ServerUtil.Encoding);
+		}
+
+		await context.Response.CompleteAsync();
+	}
+
+	/// <summary>
+	/// <list type="bullet">
+	/// <item>Body: none</item>
+	/// </list>
+	/// </summary>
 	private static async Task ListAsync(HttpContext ctx)
 	{
 		ctx.Response.ContentType = Text.Plain;
@@ -240,25 +264,6 @@ public sealed class Program
 		}
 
 		await ctx.Response.CompleteAsync();
-	}
-
-	/// <summary>
-	/// <list type="bullet">
-	/// <item>Body: none</item>
-	/// </list>
-	/// </summary>
-	private static async Task StatusAsync(HttpContext context)
-	{
-
-		IEnumerable<SoundItem> snds = await GetSoundsByHeader(context);
-
-		context.Response.ContentType = Text.Plain;
-
-		foreach (var si in snds) {
-			await context.Response.WriteAsync($"{si}\n", ServerUtil.Encoding);
-		}
-
-		await context.Response.CompleteAsync();
 	}
 
 	public const string MODE_SIMPLE = "Simple";
@@ -275,6 +280,9 @@ public sealed class Program
 
 		var mode = b ? e[0] : moded;
 
+		if (bodyEntries.Length==0) {
+			mode = MODE_SIMPLE;
+		}
 		switch (mode) {
 			case MODE_REGEX:
 				snds = _sndlib.FindByPattern(bodyEntries[0]);

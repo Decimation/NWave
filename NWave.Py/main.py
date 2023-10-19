@@ -2,11 +2,12 @@
 import os
 import threading
 
-import PySimpleGUI
+
 # Press Shift+F10 to execute it or replace it with your code.
 # Press Double Shift to search everywhere for classes, files, tool windows, actions, and settings.
 
-import PySimpleGUI as sg;
+import PySimpleGUI
+import PySimpleGUI as sg
 
 import requests as rq
 import sys
@@ -28,21 +29,21 @@ rq.packages.urllib3.disable_warnings(category=InsecureRequestWarning)
 tp = concurrent.futures.ThreadPoolExecutor(max_workers=3)
 output_ = '-OUTPUT-'
 output_2 = '-OUTPUT2-'
-
-window: PySimpleGUI.Window = None
+g_sounds = []
+window: sg.Window = None
 
 
 def req(method, url, data=None):
     url2 = f'http://{HOST}:{PORT}/{url}'
     print(url2)
-    re = rq.request(method, url2, data=data)
-    print(re)
+    re = rq.request(method, url2, data=data,timeout=None, verify=False)
+    # print(re)
     output = re.content.decode('utf-8').strip()
     return output
 
 
-# HOST = "192.168.1.79"
-HOST = "208.110.232.218"
+HOST = "192.168.1.79"
+# HOST = "208.110.232.218"
 PORT = '60900'
 
 
@@ -65,8 +66,11 @@ def periodic_task():
         # Perform the desired action
         re = req('GET', f'Status')
         if re:
-            print(re)
-            window[output_2].update(re)
+            # print(re)
+            try:
+                window[output_2].update(re)
+            except:
+                pass
         # Adjust the sleep duration based on your specific interval
         time.sleep(1.5)
 
@@ -79,15 +83,17 @@ timer_thread.daemon = True
 
 
 # Start the thread
+def add(b):
+    re= req('POST', 'Add', data=b)
+    return re
+        
 
 
 def sounds():
     re = req('GET', 'List')
-    rg = re.split('\r\n')
+    rg = re.split('\n')
     return rg
 
-
-g_sounds = sounds()
 
 
 def update_output1(x):
@@ -95,23 +101,31 @@ def update_output1(x):
     time.sleep(3)
     window[output_].update('...')
 
+def update_sounds():
+    global g_sounds
+    global window
+    if window:
+        window['lb'].update(g_sounds)
+    g_sounds = sounds()
 
 def main():
     global window
     global g_sounds
     global timer_thread
 
+    update_sounds()
     listbox = sg.Listbox(values=g_sounds, size=(50, 20), key='lb', select_mode=sg.SELECT_MODE_MULTIPLE,
                          enable_events=True)
     layout = [
         # map(lambda x: sg.Button(x), rg),
         [listbox],
+        [sg.InputText(key='in', size=(50, 1))],
         [sg.Text(f"...", key=output_)],
         [sg.Text(f"...", key=output_2)],
-        [sg.Button("Play", key='b_Play'), sg.Button("Stop", key='b_Stop')]
+        [sg.Button("Play", key='b_Play'), sg.Button("Stop", key='b_Stop'),sg.Button("Add", key='b_Add'),sg.Button("List", key='b_List')]
     ]
     window = sg.Window('PiCore', layout)
-    timer_thread.start()
+    
 
     while True:
 
@@ -119,6 +133,7 @@ def main():
 
         event, values = window.read()
 
+        print((event, values))
         if event == sg.WIN_CLOSED or event == 'Ok':
             break
 
@@ -134,7 +149,16 @@ def main():
             # lb_ = values['lb'][0][1]
             f2 = tp.submit(stop, get_snds(values))
             f2.add_done_callback(update_output1)
-
+        if event == 'b_Add':
+            # lb_ = values['lb'][0][1]
+            f3 = tp.submit(add, values['in'])
+            f3.add_done_callback(update_output1)
+        
+        if event == 'b_List':
+            # lb_ = values['lb'][0][1]
+            f3 = tp.submit(update_sounds)
+            f3.add_done_callback(update_output1)
+            
         # if f1 and f1.done():
         #     output2 = f1.result()
         # if f2 and f2.done():
@@ -142,6 +166,9 @@ def main():
 
         if output:
             window[output_].update(output)
+        if timer_thread.is_alive() == False:
+            timer_thread.start()
+
 
     window.close()
     return
