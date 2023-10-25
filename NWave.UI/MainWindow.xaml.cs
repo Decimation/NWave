@@ -102,6 +102,8 @@ public partial class MainWindow : Window, INotifyPropertyChanged
 
 	public ObservableCollection<SoundItem> Sounds { get; }
 
+	private readonly SoundLibrary             m_lib;
+
 	public event PropertyChangedEventHandler? PropertyChanged;
 
 	protected virtual void OnPropertyChanged([CMN] string? propertyName = null)

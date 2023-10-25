@@ -59,8 +59,6 @@ public class SoundItem : INotifyPropertyChanged, IDisposable
 
 	}
 
-	protected virtual void Init_() { }
-
 	private void OnHandler(object? sender, StoppedEventArgs args)
 	{
 		Status = PlaybackStatus.Stopped;
@@ -140,7 +138,7 @@ public class SoundItem : INotifyPropertyChanged, IDisposable
 
 	public override string ToString()
 	{
-		return $"{Name} | {Status} | {DeviceIndex}";
+		return $"{Name} | {Status} | {DeviceIndex} || {Provider.Volume} | {Provider.Position} | {Provider.Length}";
 	}
 }
 

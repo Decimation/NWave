@@ -1,14 +1,15 @@
-﻿<Window x:Class="NWave.UI.MainWindow"
+﻿<Window x:Name="Wnd_Main" x:Class="NWave.UI.MainWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:NWave.UI"
         mc:Ignorable="d"
-        Title="MainWindow" Height="450" Width="800" DataContext="{Binding RelativeSource={RelativeSource Self}}"
+        Title="NWave" Height="450" Width="800" 
+        DataContext="{Binding RelativeSource={RelativeSource Self}}"
         SourceInitialized="OnSourceInitialized"
         Closing="OnClosing">
-    <Grid>
+    <Grid Background="{DynamicResource Black1}">
 
         <Button x:Name="Btn_Play" Content="Play" HorizontalAlignment="Left" Margin="10,37,0,0" VerticalAlignment="Top"
                 Width="54" Click="Btn_Play_Click" />
@@ -18,12 +19,12 @@
                   ItemsSource="{Binding Sounds}" AllowDrop="True"
                   Margin="10,111,10,10" DragOver="Lv_Sounds_DragOver" Drop="Lv_Sounds_Drop"
                   DragEnter="Lv_Sounds_DragEnter" PreviewDragOver="Lv_Sounds_PreviewDragOver"
-                  KeyDown="Lv_Sounds_KeyDown">
+                  KeyDown="Lv_Sounds_KeyDown" Background="{DynamicResource Black2}">
             <ListView.View>
                 <GridView>
                     <GridViewColumn Header="Name"
                                     DisplayMemberBinding="{Binding Name,UpdateSourceTrigger=PropertyChanged}"
-                                    Width="100">
+                                    Width="200">
                     </GridViewColumn>
                     <GridViewColumn Header="Status"
                                     DisplayMemberBinding="{Binding Status, UpdateSourceTrigger=PropertyChanged, IsAsync=True}"

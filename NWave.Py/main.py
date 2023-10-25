@@ -2,7 +2,6 @@
 import os
 import threading
 
-
 # Press Shift+F10 to execute it or replace it with your code.
 # Press Double Shift to search everywhere for classes, files, tool windows, actions, and settings.
 
@@ -27,36 +26,63 @@ from urllib3.exceptions import InsecureRequestWarning
 rq.packages.urllib3.disable_warnings(category=InsecureRequestWarning)
 
 tp = concurrent.futures.ThreadPoolExecutor(max_workers=3)
-output_ = '-OUTPUT-'
-output_2 = '-OUTPUT2-'
+
+K_OUTPUT = '-OUTPUT-'
+K_OUTPUT2 = '-OUTPUT2-'
+
+K_IN = 'in'
+K_LB = 'lb'
+K_VOL = 'vol'
+
+K_ADDYT = 'b_AddYT'
+K_UPDATE = 'b_Update'
+K_STOP = 'b_Stop'
+K_PAUSE = 'b_Pause'
+K_PLAY = 'b_Play'
+K_ADD = 'b_Add'
+K_LIST = 'b_List'
+
 g_sounds = []
 window: sg.Window = None
 
 
-def req(method, url, data=None):
+def req(method, url, data=None, hdr=None):
     url2 = f'http://{HOST}:{PORT}/{url}'
     print(url2)
-    re = rq.request(method, url2, data=data,timeout=None, verify=False)
+    re = rq.request(method, url2, data=data, headers=hdr, timeout=None, verify=False)
     # print(re)
     output = re.content.decode('utf-8').strip()
     return output
 
 
-HOST = "192.168.1.79"
-# HOST = "208.110.232.218"
+HOST_LOCAL1 = "192.168.1.79"
+HOST_LOCAL2 = "localhost"
+HOST_REMOTE = "208.110.232.218"
+HOST = None
 PORT = '60900'
 
+if list(sys.argv).count('-d') > 0:
+    print('debug')
+    HOST = HOST_LOCAL2
+else:
+    print('remote')
+    HOST = HOST_REMOTE
 
-def play(b):
+
+def sound_play(b):
     return req('POST', 'Play', data=b)
 
 
-def stop(b):
+def sound_stop(b):
     return req('POST', f'Stop', data=b)
 
 
-def get_snds(values):
-    lb_ = values['lb']
+def sound_pause(b):
+    return req('POST', f'Pause', data=b)
+
+
+def format_values(values, k=K_LB):
+    lb_ = values[k]
     b = ','.join(lb_)
     return b
 
@@ -68,7 +94,7 @@ def periodic_task():
         if re:
             # print(re)
             try:
-                window[output_2].update(re)
+                window[K_OUTPUT2].update(re)
             except:
                 pass
         # Adjust the sleep duration based on your specific interval
@@ -82,55 +108,77 @@ timer_thread = threading.Thread(target=periodic_task)
 timer_thread.daemon = True
 
 
-# Start the thread
-def add(b):
-    re= req('POST', 'Add', data=b)
-    return re
-        
-def add2(b):
-    re= req('POST', 'AddYouTube', data=b)
+# region
+
+def sound_add(b):
+    re = req('POST', 'Add', data=b)
     return re
 
-def sounds():
+
+def sound_add_youtube(b):
+    re = req('POST', 'AddYouTube', data=b)
+    return re
+
+
+def sound_list():
     re = req('GET', 'List')
     rg = re.split('\n')
     return rg
 
-def update_output2(x):
-    update_output1(x)
-    update_sounds()
 
-def update_output1(x):
-    window[output_].update(x.result())
+def ui_update(x):
+    ui_update_output(x)
+    ui_update_sounds()
+
+
+def ui_update_output(x):
+    window[K_OUTPUT].update(x.result())
     time.sleep(3)
-    window[output_].update('...')
+    window[K_OUTPUT].update('...')
 
-def update_sounds():
+
+def ui_update_sounds():
     global g_sounds
     global window
-    g_sounds = sounds()
+    g_sounds = sound_list()
     if window:
-        window['lb'].update(g_sounds)
-    
+        window[K_LB].update(g_sounds)
+
+
+def sound_update(x, h):
+    re = req('POST', 'Update', data=x, hdr=h)
+    rg = re.split('\n')
+    return rg
+
+
+# endregion
 
 def main():
     global window
     global g_sounds
     global timer_thread
 
-    update_sounds()
-    listbox = sg.Listbox(values=g_sounds, size=(50, 20), key='lb', select_mode=sg.SELECT_MODE_MULTIPLE,
+    ui_update_sounds()
+
+    listbox = sg.Listbox(values=g_sounds, size=(50, 20), key=K_LB, select_mode=sg.SELECT_MODE_MULTIPLE,
                          enable_events=True)
+
+    sg.theme("dark grey 8")
+
     layout = [
         # map(lambda x: sg.Button(x), rg),
         [listbox],
-        [sg.InputText(key='in', size=(50, 1))],
-        [sg.Text(f"...", key=output_)],
-        [sg.Text(f"...", key=output_2)],
-        [sg.Button("Play", key='b_Play'), sg.Button("Stop", key='b_Stop'),sg.Button("Add", key='b_Add'),sg.Button("Add YT", key='b_Add2'),sg.Button("List", key='b_List')]
+        [sg.InputText(key=K_IN, size=(50, 1)), sg.InputText(key=K_VOL, size=(5, 1))],
+        [sg.Text(f"...", key=K_OUTPUT)],
+        [sg.Text(f"...", key=K_OUTPUT2)],
+        [
+            sg.Button("Play", key=K_PLAY), sg.Button("Pause", key=K_PAUSE), sg.Button("Stop", key=K_STOP),
+            sg.Button("Add", key=K_ADD), sg.Button("Add YT", key=K_ADDYT),
+            sg.Button("List", key=K_LIST), sg.Button("Update", key=K_UPDATE)
+        ]
     ]
-    window = sg.Window('PiCore', layout)
-    
+
+    window = sg.Window('NWave', layout)
 
     while True:
 
@@ -145,42 +193,43 @@ def main():
         output = None
         print(f'event: {event} | values: {values}')
 
-        if event == 'b_Play':
-            # lb_ = values['lb'][0][1]
-            f1 = tp.submit(play, get_snds(values))
-            f1.add_done_callback(update_output1)
+        if event == K_PLAY:
+            f1 = tp.submit(sound_play, format_values(values))
+            f1.add_done_callback(ui_update_output)
 
-        if event == 'b_Stop':
-            # lb_ = values['lb'][0][1]
-            f2 = tp.submit(stop, get_snds(values))
-            f2.add_done_callback(update_output1)
-            
-        if event == 'b_Add':
-            # lb_ = values['lb'][0][1]
-            f3 = tp.submit(add, values['in'])
-            f3.add_done_callback(update_output2)
-        
-        if event == 'b_Add2':
-            # lb_ = values['lb'][0][1]
-            f3 = tp.submit(add2, values['in'])
-            f3.add_done_callback(update_output2)
-            
+        if event == K_STOP:
+            f2 = tp.submit(sound_stop, format_values(values))
+            f2.add_done_callback(ui_update_output)
 
-        if event == 'b_List':
-            # lb_ = values['lb'][0][1]
-            f3 = tp.submit(update_sounds)
-            f3.add_done_callback(update_output1)
-            
+        if event == K_PAUSE:
+            f2 = tp.submit(sound_pause, format_values(values))
+            f2.add_done_callback(ui_update_output)
+
+        if event == K_ADD:
+            f3 = tp.submit(sound_add, values[K_IN])
+            f3.add_done_callback(ui_update)
+
+        if event == K_ADDYT:
+            f3 = tp.submit(sound_add_youtube, values[K_IN])
+            f3.add_done_callback(ui_update)
+
+        if event == K_LIST:
+            f3 = tp.submit(ui_update_sounds)
+            f3.add_done_callback(ui_update_output)
+
+        if event == K_UPDATE:
+            f3 = tp.submit(sound_update, format_values(values), {'Vol': values[K_VOL]})
+            f3.add_done_callback(ui_update_output)
+
         # if f1 and f1.done():
         #     output2 = f1.result()
         # if f2 and f2.done():
         #     output2 = f2.result()
 
         if output:
-            window[output_].update(output)
-        if timer_thread.is_alive() == False:
+            window[K_OUTPUT].update(output)
+        if not timer_thread.is_alive():
             timer_thread.start()
-
 
     window.close()
     return
