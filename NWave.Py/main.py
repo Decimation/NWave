@@ -162,7 +162,7 @@ def main():
 
     listbox = sg.Listbox(values=g_sounds, size=(50, 20), key=K_LB, select_mode=sg.SELECT_MODE_MULTIPLE,
                          enable_events=True)
-
+    
     sg.theme("dark grey 8")
 
     layout = [

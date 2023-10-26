@@ -36,6 +36,8 @@ public class SoundItem : INotifyPropertyChanged, IDisposable
 
 	public bool IsDisposed { get; private set; }
 
+	public double PlaybackProgress => Math.Round((Provider.Position / (double) Provider.Length), 4);
+
 	public SoundItem(string fullName, int idx)
 	{
 		if (!File.Exists(fullName)) {
@@ -59,10 +61,15 @@ public class SoundItem : INotifyPropertyChanged, IDisposable
 
 	}
 
-	private void OnHandler(object? sender, StoppedEventArgs args)
+	private void OnHandler([CanBeNull] object sender, StoppedEventArgs args)
 	{
 		Status = PlaybackStatus.Stopped;
 
+	}
+
+	public void UpdateProperties()
+	{
+		OnPropertyChanged(nameof(PlaybackProgress));
 	}
 
 	public void PlayPause()
@@ -103,12 +110,12 @@ public class SoundItem : INotifyPropertyChanged, IDisposable
 
 	public event PropertyChangedEventHandler? PropertyChanged;
 
-	protected virtual void OnPropertyChanged([CallerMemberName] string? propertyName = null)
+	protected virtual void OnPropertyChanged([CanBeNull] [CallerMemberName] string propertyName = null)
 	{
 		PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
 	}
 
-	protected bool SetField<T>(ref T field, T value, [CallerMemberName] string? propertyName = null)
+	protected bool SetField<T>(ref T field, T value, [CanBeNull] [CallerMemberName] string propertyName = null)
 	{
 		if (EqualityComparer<T>.Default.Equals(field, value)) return false;
 		field = value;

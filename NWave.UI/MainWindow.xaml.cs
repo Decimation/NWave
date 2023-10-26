@@ -58,7 +58,7 @@ public partial class MainWindow : Window, INotifyPropertyChanged
 
 		m_bg = new DispatcherTimer(DispatcherPriority.Background)
 		{
-			Interval  = TimeSpan.FromSeconds(1),
+			Interval  = TimeSpan.FromSeconds(0.33),
 			IsEnabled = true,
 
 		};
@@ -72,6 +72,11 @@ public partial class MainWindow : Window, INotifyPropertyChanged
 	{
 		if (await m_semaphore.WaitAsync(TimeSpan.Zero)) {
 			return;
+		}
+
+		foreach (SoundItem item in Sounds.Where(x=>x.Status.IsIndeterminate())) {
+			// Debug.WriteLine($"updating {item}");
+			item.UpdateProperties();
 		}
 
 		m_semaphore.Release();
@@ -100,9 +105,9 @@ public partial class MainWindow : Window, INotifyPropertyChanged
 	[MNNW(true, nameof(Selected))]
 	public bool HasSelected => Lv_Sounds.SelectedIndex != -1;
 
-	public ObservableCollection<SoundItem> Sounds { get; }
+	public ObservableCollection<SoundItem> Sounds { get; private set; }
 
-	private readonly SoundLibrary             m_lib;
+	private readonly SoundLibrary m_lib;
 
 	public event PropertyChangedEventHandler? PropertyChanged;
 
@@ -275,7 +280,7 @@ public partial class MainWindow : Window, INotifyPropertyChanged
 	{
 		Dispatcher.BeginInvoke(() =>
 		{
-			Selected?.Pause();
+			Selected?.PlayPause();
 
 		});
 		e.Handled = true;
@@ -307,5 +312,24 @@ public partial class MainWindow : Window, INotifyPropertyChanged
 		});
 		e.Handled = true;
 
+	}
+
+	private SoundItem[] m_buf;
+
+	private void Tb_Search_TextChanged(object sender, TextChangedEventArgs e)
+	{
+		var s = Tb_Search.Text;
+
+		if (string.IsNullOrEmpty(s)) {
+			Lv_Sounds.ItemsSource = Sounds;
+		}
+		else {
+			
+			var filteredData =
+				new ObservableCollection<SoundItem>(Sounds.Where(item => item.Name.Contains(s, StringComparison.OrdinalIgnoreCase)));
+			Lv_Sounds.ItemsSource = filteredData;
+		}
+
+		e.Handled = true;
 	}
 }

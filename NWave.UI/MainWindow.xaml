@@ -5,7 +5,7 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:NWave.UI"
         mc:Ignorable="d"
-        Title="NWave" Height="450" Width="800" 
+        Title="NWave" Height="450" Width="800"
         DataContext="{Binding RelativeSource={RelativeSource Self}}"
         SourceInitialized="OnSourceInitialized"
         Closing="OnClosing">
@@ -19,7 +19,7 @@
                   ItemsSource="{Binding Sounds}" AllowDrop="True"
                   Margin="10,111,10,10" DragOver="Lv_Sounds_DragOver" Drop="Lv_Sounds_Drop"
                   DragEnter="Lv_Sounds_DragEnter" PreviewDragOver="Lv_Sounds_PreviewDragOver"
-                  KeyDown="Lv_Sounds_KeyDown" Background="{DynamicResource Black2}">
+                  KeyDown="Lv_Sounds_KeyDown">
             <ListView.View>
                 <GridView>
                     <GridViewColumn Header="Name"
@@ -28,6 +28,11 @@
                     </GridViewColumn>
                     <GridViewColumn Header="Status"
                                     DisplayMemberBinding="{Binding Status, UpdateSourceTrigger=PropertyChanged, IsAsync=True}"
+                                    Width="100">
+
+                    </GridViewColumn>
+                    <GridViewColumn Header="Progress"
+                                    DisplayMemberBinding="{Binding PlaybackProgress, UpdateSourceTrigger=PropertyChanged, IsAsync=True,StringFormat='\{0:P\}'}"
                                     Width="100">
 
                     </GridViewColumn>
@@ -49,6 +54,9 @@
 
         <Button x:Name="Btn_Clear" Content="Clear" HorizontalAlignment="Left" Margin="69,61,0,0"
                 VerticalAlignment="Top" Click="Btn_Clear_Click" />
+
+        <TextBox x:Name="Tb_Search" HorizontalAlignment="Left" Margin="670,87,0,0" TextWrapping="Wrap"
+                 VerticalAlignment="Top" Width="120" TextChanged="Tb_Search_TextChanged" />
 
     </Grid>
 </Window>
