@@ -1,4 +1,5 @@
 # This is a sample Python script.
+from urllib3.exceptions import InsecureRequestWarning
 import os
 import threading
 
@@ -19,7 +20,6 @@ import time
 # print(f'Connecting to {SERVER_ENDPOINT}...')
 
 c = httpx.AsyncClient()
-from urllib3.exceptions import InsecureRequestWarning
 
 # Suppress only the single warning from urllib3 needed.
 
@@ -27,70 +27,70 @@ rq.packages.urllib3.disable_warnings(category=InsecureRequestWarning)
 
 tp = concurrent.futures.ThreadPoolExecutor(max_workers=3)
 
-K_OUTPUT = '-OUTPUT-'
-K_OUTPUT2 = '-OUTPUT2-'
+K_OUTPUT = "-OUTPUT-"
+K_OUTPUT2 = "-OUTPUT2-"
 
-K_IN = 'in'
-K_LB = 'lb'
-K_VOL = 'vol'
+K_IN = "in"
+K_LB = "lb"
+K_VOL = "vol"
 
-K_ADDYT = 'b_AddYT'
-K_UPDATE = 'b_Update'
-K_STOP = 'b_Stop'
-K_PAUSE = 'b_Pause'
-K_PLAY = 'b_Play'
-K_ADD = 'b_Add'
-K_LIST = 'b_List'
+K_ADDYT = "b_AddYT"
+K_UPDATE = "b_Update"
+K_STOP = "b_Stop"
+K_PAUSE = "b_Pause"
+K_PLAY = "b_Play"
+K_ADD = "b_Add"
+K_LIST = "b_List"
 
 g_sounds = []
 window: sg.Window = None
 
 
 def req(method, url, data=None, hdr=None):
-    url2 = f'http://{HOST}:{PORT}/{url}'
+    url2 = f"http://{HOST}:{PORT}/{url}"
     print(url2)
     re = rq.request(method, url2, data=data, headers=hdr, timeout=None, verify=False)
     # print(re)
-    output = re.content.decode('utf-8').strip()
+    output = re.content.decode("utf-8").strip()
     return output
 
 
 HOST_LOCAL1 = "192.168.1.79"
 HOST_LOCAL2 = "localhost"
-HOST_REMOTE = "208.110.232.218"
+HOST_REMOTE = "206.196.32.236"
 HOST = None
-PORT = '60900'
+PORT = "60900"
 
-if list(sys.argv).count('-d') > 0:
-    print('debug')
-    HOST = HOST_LOCAL2
+if list(sys.argv).count("-d") > 0:
+    print("debug")
+    HOST = HOST_LOCAL1
 else:
-    print('remote')
+    print("remote")
     HOST = HOST_REMOTE
 
 
 def sound_play(b):
-    return req('POST', 'Play', data=b)
+    return req("POST", "Play", data=b)
 
 
 def sound_stop(b):
-    return req('POST', f'Stop', data=b)
+    return req("POST", f"Stop", data=b)
 
 
 def sound_pause(b):
-    return req('POST', f'Pause', data=b)
+    return req("POST", f"Pause", data=b)
 
 
 def format_values(values, k=K_LB):
     lb_ = values[k]
-    b = ','.join(lb_)
+    b = ",".join(lb_)
     return b
 
 
 def periodic_task():
     while True:
         # Perform the desired action
-        re = req('GET', f'Status')
+        re = req("GET", f"Status")
         if re:
             # print(re)
             try:
@@ -110,19 +110,20 @@ timer_thread.daemon = True
 
 # region
 
+
 def sound_add(b):
-    re = req('POST', 'Add', data=b)
+    re = req("POST", "Add", data=b)
     return re
 
 
 def sound_add_youtube(b):
-    re = req('POST', 'AddYouTube', data=b)
+    re = req("POST", "AddYouTube", data=b)
     return re
 
 
 def sound_list():
-    re = req('GET', 'List')
-    rg = re.split('\n')
+    re = req("GET", "List")
+    rg = re.split("\n")
     return rg
 
 
@@ -134,7 +135,7 @@ def ui_update(x):
 def ui_update_output(x):
     window[K_OUTPUT].update(x.result())
     time.sleep(3)
-    window[K_OUTPUT].update('...')
+    window[K_OUTPUT].update("...")
 
 
 def ui_update_sounds():
@@ -146,12 +147,13 @@ def ui_update_sounds():
 
 
 def sound_update(x, h):
-    re = req('POST', 'Update', data=x, hdr=h)
-    rg = re.split('\n')
+    re = req("POST", "Update", data=x, hdr=h)
+    rg = re.split("\n")
     return rg
 
 
 # endregion
+
 
 def main():
     global window
@@ -160,9 +162,14 @@ def main():
 
     ui_update_sounds()
 
-    listbox = sg.Listbox(values=g_sounds, size=(50, 20), key=K_LB, select_mode=sg.SELECT_MODE_MULTIPLE,
-                         enable_events=True)
-    
+    listbox = sg.Listbox(
+        values=g_sounds,
+        size=(50, 20),
+        key=K_LB,
+        select_mode=sg.SELECT_MODE_MULTIPLE,
+        enable_events=True,
+    )
+
     sg.theme("dark grey 8")
 
     layout = [
@@ -172,26 +179,29 @@ def main():
         [sg.Text(f"...", key=K_OUTPUT)],
         [sg.Text(f"...", key=K_OUTPUT2)],
         [
-            sg.Button("Play", key=K_PLAY), sg.Button("Pause", key=K_PAUSE), sg.Button("Stop", key=K_STOP),
-            sg.Button("Add", key=K_ADD), sg.Button("Add YT", key=K_ADDYT),
-            sg.Button("List", key=K_LIST), sg.Button("Update", key=K_UPDATE)
-        ]
+            sg.Button("Play", key=K_PLAY),
+            sg.Button("Pause", key=K_PAUSE),
+            sg.Button("Stop", key=K_STOP),
+            sg.Button("Add", key=K_ADD),
+            sg.Button("Add YT", key=K_ADDYT),
+            sg.Button("List", key=K_LIST),
+            sg.Button("Update", key=K_UPDATE),
+        ],
     ]
 
-    window = sg.Window('NWave', layout)
+    window = sg.Window("NWave", layout)
 
     while True:
-
         f1, f2, f3 = None, None, None
 
         event, values = window.read()
 
         print((event, values))
-        if event == sg.WIN_CLOSED or event == 'Ok':
+        if event == sg.WIN_CLOSED or event == "Ok":
             break
 
         output = None
-        print(f'event: {event} | values: {values}')
+        print(f"event: {event} | values: {values}")
 
         if event == K_PLAY:
             f1 = tp.submit(sound_play, format_values(values))
@@ -218,7 +228,7 @@ def main():
             f3.add_done_callback(ui_update_output)
 
         if event == K_UPDATE:
-            f3 = tp.submit(sound_update, format_values(values), {'Vol': values[K_VOL]})
+            f3 = tp.submit(sound_update, format_values(values), {"Vol": values[K_VOL]})
             f3.add_done_callback(ui_update_output)
 
         # if f1 and f1.done():
@@ -235,5 +245,5 @@ def main():
     return
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()

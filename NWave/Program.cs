@@ -12,9 +12,8 @@ internal class Program
 {
 	static async Task Main(string[] args)
 	{
-		var x = await SoundLibrary.GetYouTubeDataUrlsAsync("https://youtu.be/s9SqpD00T98?si=CtuOkLCp-8h5XK1a");
-		Console.WriteLine(x[0]);
-		Console.WriteLine(x[1]);
+		var x = await SoundLibrary.GetYouTubeAudioUrlAsync("https://youtu.be/s9SqpD00T98?si=CtuOkLCp-8h5XK1a");
+		Console.WriteLine(x);
 	}
 
 	static void Test1()

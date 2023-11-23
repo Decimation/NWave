@@ -52,7 +52,7 @@ public partial class MainWindow : Window, INotifyPropertyChanged
 			RecurseSubdirectories = true
 		});
 
-		Sounds = new ObservableCollection<SoundItem>(files.Select(x => new SoundItem(x, DEVICE_INDEX)));
+		Sounds = new ObservableCollection<FixedSoundItem>(files.Select(x => new FixedSoundItem(x, DEVICE_INDEX)));
 
 		Lv_Sounds.ItemsSource = Sounds;
 
@@ -74,7 +74,7 @@ public partial class MainWindow : Window, INotifyPropertyChanged
 			return;
 		}
 
-		foreach (SoundItem item in Sounds.Where(x=>x.Status.IsIndeterminate())) {
+		foreach (FixedSoundItem item in Sounds.Where(x=>x.Status.IsIndeterminate())) {
 			// Debug.WriteLine($"updating {item}");
 			item.UpdateProperties();
 		}
@@ -85,13 +85,13 @@ public partial class MainWindow : Window, INotifyPropertyChanged
 
 	private readonly DispatcherTimer m_bg;
 
-	private SoundItem m_selected;
+	private FixedSoundItem m_selected;
 
 	private WindowInteropHelper m_h;
 
 	private HwndSource m_wnd;
 
-	public SoundItem? Selected
+	public FixedSoundItem? Selected
 	{
 		get => m_selected;
 		set
@@ -105,7 +105,7 @@ public partial class MainWindow : Window, INotifyPropertyChanged
 	[MNNW(true, nameof(Selected))]
 	public bool HasSelected => Lv_Sounds.SelectedIndex != -1;
 
-	public ObservableCollection<SoundItem> Sounds { get; private set; }
+	public ObservableCollection<FixedSoundItem> Sounds { get; private set; }
 
 	private readonly SoundLibrary m_lib;
 
@@ -247,7 +247,7 @@ public partial class MainWindow : Window, INotifyPropertyChanged
 
 		foreach (string s in f) {
 			if (Sounds.All(x => x.FullName != s)) {
-				Sounds.Add(new SoundItem(s, DEVICE_INDEX));
+				Sounds.Add(new FixedSoundItem(s, DEVICE_INDEX));
 			}
 		}
 
@@ -290,7 +290,7 @@ public partial class MainWindow : Window, INotifyPropertyChanged
 	{
 		Dispatcher.BeginInvoke(() =>
 		{
-			foreach (SoundItem item in Sounds) {
+			foreach (FixedSoundItem item in Sounds) {
 				item.Stop();
 			}
 
@@ -303,7 +303,7 @@ public partial class MainWindow : Window, INotifyPropertyChanged
 	{
 		Dispatcher.BeginInvoke(() =>
 		{
-			foreach (SoundItem item in Sounds) {
+			foreach (FixedSoundItem item in Sounds) {
 				item.Dispose();
 			}
 
@@ -314,7 +314,7 @@ public partial class MainWindow : Window, INotifyPropertyChanged
 
 	}
 
-	private SoundItem[] m_buf;
+	private FixedSoundItem[] m_buf;
 
 	private void Tb_Search_TextChanged(object sender, TextChangedEventArgs e)
 	{
@@ -326,7 +326,7 @@ public partial class MainWindow : Window, INotifyPropertyChanged
 		else {
 			
 			var filteredData =
-				new ObservableCollection<SoundItem>(Sounds.Where(item => item.Name.Contains(s, StringComparison.OrdinalIgnoreCase)));
+				new ObservableCollection<FixedSoundItem>(Sounds.Where(item => item.Name.Contains(s, StringComparison.OrdinalIgnoreCase)));
 			Lv_Sounds.ItemsSource = filteredData;
 		}
 

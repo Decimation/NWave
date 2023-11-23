@@ -2,7 +2,7 @@
 
   <PropertyGroup>
     <OutputType>WinExe</OutputType>
-    <TargetFramework>net7.0-windows</TargetFramework>
+    <TargetFramework>net8.0-windows</TargetFramework>
     <Nullable>enable</Nullable>
     <UseWPF>true</UseWPF>
   </PropertyGroup>
@@ -16,14 +16,14 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="CliWrap" Version="3.6.4" />
-    <PackageReference Include="Flurl.Http" Version="4.0.0-pre3" />
-    <PackageReference Include="JetBrains.Annotations" Version="2023.2.0" />
-    <PackageReference Include="Microsoft.Extensions.Logging" Version="7.0.0" />
-    <PackageReference Include="Microsoft.Extensions.Logging.Configuration" Version="7.0.0" />
-    <PackageReference Include="Microsoft.Extensions.Logging.Console" Version="7.0.0" />
-    <PackageReference Include="Microsoft.Extensions.Logging.Debug" Version="7.0.0" />
-    <PackageReference Include="Microsoft.Extensions.Logging.TraceSource" Version="7.0.0" />
+    <PackageReference Include="CliWrap" Version="3.6.5-test" />
+    <PackageReference Include="Flurl.Http" Version="4.0.0-pre6" />
+    <PackageReference Include="JetBrains.Annotations" Version="2023.3.0" />
+    <PackageReference Include="Microsoft.Extensions.Logging" Version="8.0.0" />
+    <PackageReference Include="Microsoft.Extensions.Logging.Configuration" Version="8.0.0" />
+    <PackageReference Include="Microsoft.Extensions.Logging.Console" Version="8.0.0" />
+    <PackageReference Include="Microsoft.Extensions.Logging.Debug" Version="8.0.0" />
+    <PackageReference Include="Microsoft.Extensions.Logging.TraceSource" Version="8.0.0" />
     <PackageReference Include="NAudio" Version="2.2.1" />
   </ItemGroup>
 
@@ -33,13 +33,13 @@
 
   <ItemGroup>
     <Reference Include="Kantan">
-      <HintPath>..\..\Kantan\Kantan\bin\Release\net7.0\Kantan.dll</HintPath>
+      <HintPath>..\..\Kantan\Kantan\bin\Release\net8.0\Kantan.dll</HintPath>
     </Reference>
     <Reference Include="Kantan.Net">
-      <HintPath>..\..\Kantan\Kantan.Net\bin\Release\net7.0\Kantan.Net.dll</HintPath>
+      <HintPath>..\..\Kantan\Kantan.Net\bin\Release\net8.0\Kantan.Net.dll</HintPath>
     </Reference>
     <Reference Include="Novus">
-      <HintPath>..\..\Novus\Novus\bin\Release\net7.0\Novus.dll</HintPath>
+      <HintPath>..\..\Novus\Novus\bin\Release\net8.0\Novus.dll</HintPath>
     </Reference>
   </ItemGroup>
 

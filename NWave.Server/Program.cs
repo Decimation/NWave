@@ -19,6 +19,7 @@ namespace NWave.Server;
 
 public sealed class Program
 {
+
 	private const int    DEVICE_INDEX = 3;
 	private const string SOUNDS       = @"H:\Other Music\Audio resources\NMicspam\";
 
@@ -121,7 +122,8 @@ public sealed class Program
 		_app.MapPost("/Add", AddAsync);
 		_app.MapPost("/Remove", RemoveAsync);
 		_app.MapPost("/Update", UpdateAsync);
-		_app.MapPost("/AddYouTube", AddYouTubeAudioAsync);
+		_app.MapPost("/AddYouTubeFile", AddYouTubeAudioFileAsync);
+		_app.MapPost("/AddYouTubeUrl", AddYouTubeAudioUrlAsync);
 
 		_logger.LogDebug("dbg");
 
@@ -146,7 +148,7 @@ public sealed class Program
 				continue;
 			}
 
-			var si = new SoundItem(s, DEVICE_INDEX);
+			var si = new FixedSoundItem(s, DEVICE_INDEX);
 
 			var b = Lib.TryAdd(si);
 			await ctx.Response.WriteAsync($"{si}: {b}\n", ServerUtil.Encoding);
@@ -168,7 +170,7 @@ public sealed class Program
 
 		var snds = await GetSoundsBySelectionModeAsync(ctx, MODE_SIMPLE);
 
-		foreach (SoundItem snd in snds) {
+		foreach (BaseSoundItem snd in snds) {
 
 			var b = Lib.TryRemove(snd);
 			await ctx.Response.WriteAsync($"{snd}: {b}\n", ServerUtil.Encoding);
@@ -206,6 +208,7 @@ public sealed class Program
 		await context.Response.CompleteAsync();
 
 	}
+
 	/// <summary>
 	/// <list type="bullet">
 	/// <item>Body: single [regex pattern]</item>
@@ -218,8 +221,7 @@ public sealed class Program
 
 		context.Response.ContentType = Text.Plain;
 
-		foreach (var si in snds)
-		{
+		foreach (var si in snds) {
 			si.Pause();
 			await context.Response.WriteAsync($"{si}\n", ServerUtil.Encoding);
 			_logger.LogInformation("Paused {Sound}", si);
@@ -256,12 +258,14 @@ public sealed class Program
 	private static async Task UpdateAsync(HttpContext context)
 	{
 		context.Response.ContentType = Text.Plain;
-		var snds = await GetSoundsBySelectionModeAsync(context, MODE_SIMPLE);
-		_logger.LogInformation("Sounds: {Sounds}", snds.QuickJoin());
-		var opt  = context.Request.Headers.TryGetValue(HDR_VOL, out var sv);
+		var snds  = await GetSoundsBySelectionModeAsync(context, MODE_SIMPLE);
+		var items = snds as BaseSoundItem[] ?? snds.ToArray();
+		_logger.LogInformation("Sounds: {Sounds}", items.QuickJoin());
+		var opt   = context.Request.Headers.TryGetValue(HDR_VOL, out var sv);
+		var snds2 = items.Where(s => s.SupportsVolume).ToArray();
 
 		if (opt) {
-			foreach (var si in snds) {
+			foreach (var si in snds2) {
 				var f = float.Parse(sv[0]);
 
 				if (f < 0f || f > 1.0f) {
@@ -269,7 +273,7 @@ public sealed class Program
 					f =  Math.Clamp(f, 0f, 1.0f);
 				}
 
-				si.Provider.Volume = f;
+				si.Volume = f;
 				await context.Response.WriteAsync($"{si}\n", ServerUtil.Encoding);
 				_logger.LogInformation("Updated {Sound}", si);
 
@@ -289,7 +293,7 @@ public sealed class Program
 	private static async Task StatusAsync(HttpContext context)
 	{
 
-		IEnumerable<SoundItem> snds = await GetSoundsBySelectionModeAsync(context);
+		IEnumerable<BaseSoundItem> snds = await GetSoundsBySelectionModeAsync(context);
 		snds = snds.Where(s => s.Status.IsIndeterminate()).ToArray();
 
 		context.Response.ContentType = Text.Plain;
@@ -321,12 +325,22 @@ public sealed class Program
 
 		await ctx.Response.CompleteAsync();
 	}
-
-	private static async Task AddYouTubeAudioAsync(HttpContext context)
+	private static async Task AddYouTubeAudioUrlAsync(HttpContext context)
 	{
 		context.Response.ContentType = Text.Plain;
 		var b  = await context.ReadBodyTextAsync();
-		var ok = await Lib.AddYouTubeAudioAsync(b, DEVICE_INDEX);
+		var ok = await Lib.AddYouTubeAudioUrlAsync(b, DEVICE_INDEX);
+		await context.Response.WriteAsync($"{b} : {ok}", ServerUtil.Encoding);
+
+		await context.Response.CompleteAsync();
+
+	}
+
+	private static async Task AddYouTubeAudioFileAsync(HttpContext context)
+	{
+		context.Response.ContentType = Text.Plain;
+		var b  = await context.ReadBodyTextAsync();
+		var ok = await Lib.AddYouTubeAudioFileAsync(b, DEVICE_INDEX);
 		await context.Response.WriteAsync($"{b} : {ok}", ServerUtil.Encoding);
 
 		await context.Response.CompleteAsync();
@@ -338,12 +352,12 @@ public sealed class Program
 	public const string HDR_MODE    = "Mode";
 	public const string HDR_VOL     = "Vol";
 
-	private static async Task<IEnumerable<SoundItem>> GetSoundsBySelectionModeAsync(HttpContext context,
+	private static async Task<IEnumerable<BaseSoundItem>> GetSoundsBySelectionModeAsync(HttpContext context,
 		string selMode = MODE_SIMPLE)
 	{
 		var bodyEntries = await context.ReadBodyEntriesAsync();
 
-		IEnumerable<SoundItem> snds;
+		IEnumerable<BaseSoundItem> snds;
 
 		var b = context.Request.Headers.TryGetValue(HDR_MODE, out var e);
 
@@ -370,4 +384,5 @@ public sealed class Program
 	#endregion
 
 	private const string ALL = "*";
+
 }

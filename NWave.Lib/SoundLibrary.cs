@@ -15,7 +15,8 @@ namespace NWave.Lib;
 
 public class SoundLibrary : IDisposable
 {
-	public ConcurrentDictionary<SoundItem, object> Sounds { get; } = new();
+
+	public ConcurrentDictionary<BaseSoundItem, object> Sounds { get; } = new();
 
 	public string RootDir { get; private set; }
 
@@ -24,9 +25,9 @@ public class SoundLibrary : IDisposable
 		RootDir = dir;
 		IEnumerable<string> files = EnumerateDirectory(dir);
 
-		var items = files.Select(x => new SoundItem(x, di));
+		var items = files.Select(x => new FixedSoundItem(x, di));
 
-		foreach (SoundItem item in items) {
+		foreach (FixedSoundItem item in items) {
 			if (TryAdd(item)) { }
 
 		}
@@ -43,24 +44,37 @@ public class SoundLibrary : IDisposable
 		return files;
 	}
 
-	public async Task<bool> AddYouTubeAudioAsync(string u, int di)
+	public async Task<bool> AddYouTubeAudioUrlAsync(string u, int di)
 	{
-		var y = await GetYouTubeAudioAsync(u, RootDir);
-		
+		var yt = (await GetYouTubeAudioUrlAsync(u));
+		var y  = yt.Audio;
 		if (!string.IsNullOrWhiteSpace(y)) {
-			return TryAdd(new SoundItem(y, di));
+			return TryAdd(new DynamicSoundItem(y, yt.Title, di));
 		}
 
 		return false;
 	}
 
-	public static async Task<string> GetYouTubeAudioAsync(string u, string p, CancellationToken c = default)
+	public async Task<bool> AddYouTubeAudioFileAsync(string u, int di)
+	{
+		var yt = await GetYouTubeAudioFileAsync(u, RootDir);
+		var y  = yt.Path;
+		if (!string.IsNullOrWhiteSpace(y)) {
+			return TryAdd(new FixedSoundItem(y, di));
+		}
+
+		return false;
+	}
+
+	#region YT
+
+	public static async Task<string[]> ytdlp_async(string cmd, CancellationToken c = default)
 	{
 		var stderr = new StringBuilder();
 		var stdout = new StringBuilder();
-		p = Path.TrimEndingDirectorySeparator(p);
+
 		var task = CliWrap.Cli.Wrap("yt-dlp")
-			.WithArguments($"--print after_move:filepath -x \"{u}\" --audio-format wav -P \"{p}\"")
+			.WithArguments(cmd)
 			.WithStandardErrorPipe(PipeTarget.ToStringBuilder(stderr))
 			.WithStandardOutputPipe(PipeTarget.ToStringBuilder(stdout))
 			.WithValidation(CommandResultValidation.None)
@@ -69,33 +83,63 @@ public class SoundLibrary : IDisposable
 		var res = await task;
 
 		if (res.ExitCode == 0) {
-			return (stdout.ToString()).Trim('\n');
+			return (stdout.ToString()).Split('\n');
 		}
 
 		return null;
 	}
 
-	public static async Task<Url[]> GetYouTubeDataUrlsAsync(string u, CancellationToken c = default)
+	public record YouTubeVideo
 	{
-		var stderr = new StringBuilder();
-		var stdout = new StringBuilder();
 
-		var task = CliWrap.Cli.Wrap("yt-dlp").WithArguments($"--get-url {u}")
-			.WithStandardErrorPipe(PipeTarget.ToStringBuilder(stderr))
-			.WithStandardOutputPipe(PipeTarget.ToStringBuilder(stdout))
-			.ExecuteAsync(c);
+		public Url Url { get; init; }
 
-		var res = await task;
+		public string Id { get; init; }
 
-		if (res.ExitCode == 0) {
-			var urls1 = stdout.ToString().Split('\n').Select(x => (Url) x).ToArray();
-			return urls1;
-		}
+		public string Title { get; init; }
 
-		return null;
+		public Url Audio { get; init; }
+
+		public Url Video { get; init; }
+
+		[CanBeNull]
+		public string Path { get; init; }
+
 	}
 
-	public IEnumerable<SoundItem> FindSoundsByNames(IEnumerable<string> rnames)
+	public static async Task<YouTubeVideo> GetYouTubeAudioFileAsync(string u, string p, CancellationToken c = default)
+	{
+		p = Path.TrimEndingDirectorySeparator(p);
+
+		var x = await ytdlp_async($"--print after_move:filepath,id,title -x \"{u}\" --audio-format wav -P \"{p}\"", c);
+
+		return new YouTubeVideo()
+		{
+			Url = u,
+			Audio = null, 
+			Id = x[1], 
+			Path = x[0], 
+			Title = x[2]
+		};
+	}
+
+	public static async Task<YouTubeVideo> GetYouTubeAudioUrlAsync(string u, CancellationToken c = default)
+	{
+		var urls  = await ytdlp_async($"--get-url {u} --print id,title -x", c);
+		var urls1 = urls;
+
+		return new YouTubeVideo()
+		{
+			Url   = u,
+			Id    = urls1[0],
+			Title = urls1[1],
+			Audio = urls1[2]
+		};
+	}
+
+	#endregion
+
+	public IEnumerable<BaseSoundItem> FindSoundsByNames(IEnumerable<string> rnames)
 	{
 		var s1s = rnames as string[] ?? rnames.ToArray();
 
@@ -103,7 +147,7 @@ public class SoundLibrary : IDisposable
 			return Sounds.Keys.AsEnumerable();
 		}
 
-		var buf = new List<SoundItem>(s1s.Length);
+		var buf = new List<BaseSoundItem>(s1s.Length);
 
 		foreach (string s1 in s1s) {
 
@@ -118,7 +162,7 @@ public class SoundLibrary : IDisposable
 		return buf;
 	}
 
-	public IEnumerable<SoundItem> FindByPattern(string pattern)
+	public IEnumerable<BaseSoundItem> FindByPattern(string pattern)
 	{
 		foreach (var (a, _) in Sounds) {
 			if (Regex.Match(a.Name, pattern, RegexOptions.IgnoreCase).Success) {
@@ -127,9 +171,9 @@ public class SoundLibrary : IDisposable
 		}
 	}
 
-	public IEnumerable<SoundItem> FindByPredicate(string[] rnames, Func<SoundItem, bool> ff)
+	public IEnumerable<BaseSoundItem> FindByPredicate(string[] rnames, Func<BaseSoundItem, bool> ff)
 	{
-		IEnumerable<SoundItem> snds;
+		IEnumerable<BaseSoundItem> snds;
 
 		if (rnames.Length != 0) {
 			snds = FindSoundsByNames(rnames);
@@ -142,7 +186,7 @@ public class SoundLibrary : IDisposable
 	}
 
 	[CanBeNull]
-	public SoundItem FindSoundByName(string rname)
+	public BaseSoundItem FindSoundByName(string rname)
 	{
 		var kv = Sounds.FirstOrDefault(x =>
 		{
@@ -151,7 +195,7 @@ public class SoundLibrary : IDisposable
 		return kv.Key;
 	}
 
-	public bool TryRemove(SoundItem item)
+	public bool TryRemove(BaseSoundItem item)
 	{
 		var b = Sounds.TryRemove(item, out _);
 
@@ -165,7 +209,7 @@ public class SoundLibrary : IDisposable
 		return b;
 	}
 
-	public bool TryAdd(SoundItem s)
+	public bool TryAdd(BaseSoundItem s)
 	{
 		return Sounds.TryAdd(s, null);
 
@@ -173,7 +217,7 @@ public class SoundLibrary : IDisposable
 
 	public void Dispose()
 	{
-		foreach ((SoundItem? key, var _) in Sounds) {
+		foreach ((BaseSoundItem? key, var _) in Sounds) {
 			if (!key.IsDisposed) {
 				key.Dispose();
 
@@ -182,4 +226,5 @@ public class SoundLibrary : IDisposable
 
 		Sounds.Clear();
 	}
+
 }
