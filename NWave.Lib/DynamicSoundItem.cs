@@ -12,7 +12,7 @@ public class DynamicSoundItem : BaseSoundItem
 
 	public override float Volume
 	{
-		get => throw new NotSupportedException();
+		get => VOL_INVALID;
 		set => throw new NotSupportedException();
 	}
 

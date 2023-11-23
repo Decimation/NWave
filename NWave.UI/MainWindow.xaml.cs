@@ -32,6 +32,8 @@ using Novus.Win32;
 using Novus.Win32.Structures.User32;
 using NWave.Lib;
 
+// ReSharper disable InconsistentNaming
+
 namespace NWave.UI;
 
 /// <summary>
@@ -39,31 +41,52 @@ namespace NWave.UI;
 /// </summary>
 public partial class MainWindow : Window, INotifyPropertyChanged
 {
+
 	private const string SERVER = $"https://localhost:7182";
+
 	private const string SOUNDS = @"H:\Other Music\Audio resources\NMicspam\";
+
+	public enum AddOperation
+	{
+
+		YT_URL,
+		YT_FILE,
+		DIRECTORY,
+		FILE
+
+	}
+
+	public static readonly AddOperation[] Item_Ops = Enum.GetValues<AddOperation>();
 
 	public MainWindow()
 	{
 		DataContext = this;
 		InitializeComponent();
 
-		var files = Directory.EnumerateFiles(SOUNDS, searchPattern: "*.*", new EnumerationOptions()
+		IEnumerable<string> files = EnumFiles(SOUNDS);
+
+		Sounds = new ObservableCollection<BaseSoundItem>(files.Select(x => new FixedSoundItem(x, DEVICE_INDEX)));
+
+		Lv_Sounds.ItemsSource    = Sounds;
+		Cb_InputType.ItemsSource = Item_Ops;
+
+		m_bg = new DispatcherTimer(DispatcherPriority.Normal)
 		{
-			RecurseSubdirectories = true
-		});
-
-		Sounds = new ObservableCollection<FixedSoundItem>(files.Select(x => new FixedSoundItem(x, DEVICE_INDEX)));
-
-		Lv_Sounds.ItemsSource = Sounds;
-
-		m_bg = new DispatcherTimer(DispatcherPriority.Background)
-		{
-			Interval  = TimeSpan.FromSeconds(0.33),
+			Interval  = TimeSpan.FromMilliseconds(300),
 			IsEnabled = true,
 
 		};
 		m_bg.Tick += Ticker;
 
+	}
+
+	private static IEnumerable<string> EnumFiles(string dir)
+	{
+		var files = Directory.EnumerateFiles(dir, searchPattern: "*.*", new EnumerationOptions()
+		{
+			RecurseSubdirectories = true
+		});
+		return files;
 	}
 
 	private readonly SemaphoreSlim m_semaphore = new SemaphoreSlim(1);
@@ -74,7 +97,7 @@ public partial class MainWindow : Window, INotifyPropertyChanged
 			return;
 		}
 
-		foreach (FixedSoundItem item in Sounds.Where(x=>x.Status.IsIndeterminate())) {
+		foreach (var item in Sounds.Where(x => x.Status.IsIndeterminate())) {
 			// Debug.WriteLine($"updating {item}");
 			item.UpdateProperties();
 		}
@@ -85,27 +108,16 @@ public partial class MainWindow : Window, INotifyPropertyChanged
 
 	private readonly DispatcherTimer m_bg;
 
-	private FixedSoundItem m_selected;
-
 	private WindowInteropHelper m_h;
 
 	private HwndSource m_wnd;
 
-	public FixedSoundItem? Selected
-	{
-		get => m_selected;
-		set
-		{
-			if (Equals(value, m_selected)) return;
-			m_selected = value;
-			OnPropertyChanged();
-		}
-	}
-
 	[MNNW(true, nameof(Selected))]
-	public bool HasSelected => Lv_Sounds.SelectedIndex != -1;
+	public bool HasSelected => Selected != null;
 
-	public ObservableCollection<FixedSoundItem> Sounds { get; private set; }
+	public ObservableCollection<BaseSoundItem> Sounds { get; private set; }
+
+	public IEnumerable<BaseSoundItem> Selected => Lv_Sounds.SelectedItems.Cast<BaseSoundItem>();
 
 	private readonly SoundLibrary m_lib;
 
@@ -124,33 +136,11 @@ public partial class MainWindow : Window, INotifyPropertyChanged
 		return true;
 	}
 
-	private void Btn_Play_Click(object sender, RoutedEventArgs e)
-	{
-
-		Dispatcher.BeginInvoke(() =>
-		{
-
-			Selected?.Play();
-		});
-
-		e.Handled = true;
-	}
-
 	private const int DEVICE_INDEX = 3;
 
 	public const int HOOK_ID  = 9000;
 	public const int HOOK_ID1 = 9001;
 	public const int HOOK_ID2 = 9002;
-
-	private void Btn_Stop_Click(object sender, RoutedEventArgs e)
-	{
-		Dispatcher.BeginInvoke(() =>
-		{
-			Selected?.Stop();
-
-		});
-		e.Handled = true;
-	}
 
 	private IntPtr HwndHook(IntPtr hwnd, int msg, IntPtr wParam, IntPtr lParam, ref bool handled)
 	{
@@ -168,8 +158,10 @@ public partial class MainWindow : Window, INotifyPropertyChanged
 
 							Dispatcher.BeginInvoke(() =>
 							{
+								foreach (var item in Selected) {
+									item.PlayPause();
 
-								Selected?.PlayPause();
+								}
 							});
 						}
 
@@ -230,106 +222,15 @@ public partial class MainWindow : Window, INotifyPropertyChanged
 		Debug.Print("Unregistered");
 	}
 
-	private void Lv_Sounds_DragOver(object sender, DragEventArgs e)
+	#region
+
+	void AddSound(BaseSoundItem soundItem)
 	{
-		e.Handled = true;
+		Sounds.Add(soundItem);
+		Lv_Sounds.ScrollIntoView(soundItem);
+		Tb_Url.Text = null;
 	}
 
-	private void Lv_Sounds_Drop(object sender, DragEventArgs e)
-	{
-		e.Handled = true;
+	#endregion
 
-	}
-
-	private void Lv_Sounds_DragEnter(object sender, DragEventArgs e)
-	{
-		var f = e.GetFilesFromDrop();
-
-		foreach (string s in f) {
-			if (Sounds.All(x => x.FullName != s)) {
-				Sounds.Add(new FixedSoundItem(s, DEVICE_INDEX));
-			}
-		}
-
-		e.Handled = true;
-	}
-
-	private void Lv_Sounds_PreviewDragOver(object sender, DragEventArgs e)
-	{
-		e.Handled = true;
-	}
-
-	private void Lv_Sounds_KeyDown(object sender, KeyEventArgs e)
-	{
-
-		switch (e.Key) {
-			case Key.Delete:
-				if (HasSelected) {
-					Selected.Dispose();
-					Sounds.Remove(Selected);
-
-				}
-
-				break;
-		}
-
-		e.Handled = true;
-	}
-
-	private void Btn_Pause_Click(object sender, RoutedEventArgs e)
-	{
-		Dispatcher.BeginInvoke(() =>
-		{
-			Selected?.PlayPause();
-
-		});
-		e.Handled = true;
-	}
-
-	private void Btn_StopAll_Click(object sender, RoutedEventArgs e)
-	{
-		Dispatcher.BeginInvoke(() =>
-		{
-			foreach (FixedSoundItem item in Sounds) {
-				item.Stop();
-			}
-
-		});
-		e.Handled = true;
-
-	}
-
-	private void Btn_Clear_Click(object sender, RoutedEventArgs e)
-	{
-		Dispatcher.BeginInvoke(() =>
-		{
-			foreach (FixedSoundItem item in Sounds) {
-				item.Dispose();
-			}
-
-			Sounds.Clear();
-
-		});
-		e.Handled = true;
-
-	}
-
-	private FixedSoundItem[] m_buf;
-
-	private void Tb_Search_TextChanged(object sender, TextChangedEventArgs e)
-	{
-		var s = Tb_Search.Text;
-
-		if (string.IsNullOrEmpty(s)) {
-			Lv_Sounds.ItemsSource = Sounds;
-		}
-		else {
-			
-			var filteredData =
-				new ObservableCollection<FixedSoundItem>(Sounds.Where(item => item.Name.Contains(s, StringComparison.OrdinalIgnoreCase)));
-			Lv_Sounds.ItemsSource = filteredData;
-		}
-
-		e.Handled = true;
-	}
 }

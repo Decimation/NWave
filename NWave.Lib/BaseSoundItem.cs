@@ -43,6 +43,8 @@ public abstract class BaseSoundItem : INotifyPropertyChanged, IDisposable
 
 	}
 
+	public const float VOL_INVALID = float.NaN;
+
 	public abstract float Volume { get; set; }
 
 	public virtual long Length => Provider.Length;
@@ -57,7 +59,9 @@ public abstract class BaseSoundItem : INotifyPropertyChanged, IDisposable
 
 	public void UpdateProperties()
 	{
-		OnPropertyChanged(nameof(FixedSoundItem.PlaybackProgress));
+		OnPropertyChanged(nameof(PlaybackProgress));
+		OnPropertyChanged(nameof(Status));
+		OnPropertyChanged(nameof(Volume));
 	}
 
 	public virtual void PlayPause()
@@ -97,6 +101,7 @@ public abstract class BaseSoundItem : INotifyPropertyChanged, IDisposable
 	public virtual void Stop()
 	{
 		CheckDisposed();
+		Status = PlaybackStatus.Stopped;
 		Out.Stop();
 		// Dispose();
 	}

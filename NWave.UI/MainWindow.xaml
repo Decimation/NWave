@@ -1,4 +1,5 @@
-﻿<Window x:Name="Wnd_Main" x:Class="NWave.UI.MainWindow"
+﻿<!-- ReSharper disable InconsistentNaming -->
+<Window x:Name="Wnd_Main" x:Class="NWave.UI.MainWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
@@ -15,10 +16,9 @@
                 Width="54" Click="Btn_Play_Click" />
 
         <ListView x:Name="Lv_Sounds" IsSynchronizedWithCurrentItem="True"
-                  SelectedItem="{Binding Selected, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
                   ItemsSource="{Binding Sounds}" AllowDrop="True"
                   Margin="10,111,10,10" DragOver="Lv_Sounds_DragOver" Drop="Lv_Sounds_Drop"
-                  DragEnter="Lv_Sounds_DragEnter" PreviewDragOver="Lv_Sounds_PreviewDragOver"
+                  DragEnter="Lv_Sounds_DragEnter" PreviewDragOver="Lv_Sounds_PreviewDragOver" SelectionMode="Multiple"
                   KeyDown="Lv_Sounds_KeyDown">
             <ListView.View>
                 <GridView>
@@ -28,6 +28,17 @@
                     </GridViewColumn>
                     <GridViewColumn Header="Status"
                                     DisplayMemberBinding="{Binding Status, UpdateSourceTrigger=PropertyChanged, IsAsync=True}"
+                                    Width="100">
+
+                    </GridViewColumn>
+                    <GridViewColumn Header="Length"
+                                    DisplayMemberBinding="{Binding Length, UpdateSourceTrigger=PropertyChanged, IsAsync=True,StringFormat='\{0\}'}"
+                                    Width="100">
+
+                    </GridViewColumn>
+
+                    <GridViewColumn Header="Volume"
+                                    DisplayMemberBinding="{Binding Volume, UpdateSourceTrigger=PropertyChanged, IsAsync=True,StringFormat='\{0:P\}'}"
                                     Width="100">
 
                     </GridViewColumn>
@@ -57,6 +68,23 @@
 
         <TextBox x:Name="Tb_Search" HorizontalAlignment="Left" Margin="670,87,0,0" TextWrapping="Wrap"
                  VerticalAlignment="Top" Width="120" TextChanged="Tb_Search_TextChanged" />
+
+        <TextBox x:Name="Tb_Volume" HorizontalAlignment="Left" Margin="730,64,0,0" TextWrapping="Wrap"
+                 VerticalAlignment="Top" Width="60" TextChanged="Tb_Search_TextChanged" />
+
+        <TextBox x:Name="Tb_Url" HorizontalAlignment="Left" Margin="670,41,0,0" TextWrapping="Wrap"
+                 VerticalAlignment="Top" Width="120" TextChanged="Tb_Search_TextChanged" />
+
+        <Button x:Name="Btn_Add" Content="Add" HorizontalAlignment="Left" Margin="69,36,0,0" VerticalAlignment="Top"
+                Width="54" Click="Btn_Add_Click" />
+
+        <Button x:Name="Btn_Update" Content="Update" HorizontalAlignment="Left" Margin="128,86,0,0"
+                VerticalAlignment="Top" Click="Btn_Update_Click" />
+
+        <ComboBox x:Name="Cb_InputType" HorizontalAlignment="Left" Margin="545,39,0,0" VerticalAlignment="Top"
+                  Width="120" />
+        <Button x:Name="Btn_Remove" Content="Remove" HorizontalAlignment="Left" Margin="105,61,0,0"
+                VerticalAlignment="Top" Click="Btn_Remove_Click" />
 
     </Grid>
 </Window>
