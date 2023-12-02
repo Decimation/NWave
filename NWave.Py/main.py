@@ -35,6 +35,7 @@ K_LB = "lb"
 K_VOL = "vol"
 
 K_ADDYT = "b_AddYT"
+K_ADDYT2 = "b_AddYT2"
 K_UPDATE = "b_Update"
 K_STOP = "b_Stop"
 K_PAUSE = "b_Pause"
@@ -117,9 +118,12 @@ def sound_add(b):
 
 
 def sound_add_youtube(b):
-    re = req("POST", "AddYouTube", data=b)
+    re = req("POST", "AddYouTubeFile", data=b)
     return re
 
+def sound_add_youtube2(b):
+    re = req("POST", "AddYouTubeUrl", data=b)
+    return re
 
 def sound_list():
     re = req("GET", "List")
@@ -184,6 +188,7 @@ def main():
             sg.Button("Stop", key=K_STOP),
             sg.Button("Add", key=K_ADD),
             sg.Button("Add YT", key=K_ADDYT),
+            sg.Button("Add YT2", key=K_ADDYT2),
             sg.Button("List", key=K_LIST),
             sg.Button("Update", key=K_UPDATE),
         ],
@@ -221,6 +226,10 @@ def main():
 
         if event == K_ADDYT:
             f3 = tp.submit(sound_add_youtube, values[K_IN])
+            f3.add_done_callback(ui_update)
+
+        if event == K_ADDYT2:
+            f3 = tp.submit(sound_add_youtube2, values[K_IN])
             f3.add_done_callback(ui_update)
 
         if event == K_LIST:

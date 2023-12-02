@@ -164,7 +164,7 @@ public partial class MainWindow
 			case AddOperation.YT_URL:
 				Dispatcher.InvokeAsync(async () =>
 				{
-					var yt        = await SoundLibrary.GetYouTubeAudioUrlAsync(t);
+					var yt        = await SoundUtility.GetYtdlpAudioUrlAsync(t);
 					var soundItem = new DynamicSoundItem(yt.Audio, yt.Title, DEVICE_INDEX);
 					AddSound(soundItem);
 				});
@@ -172,7 +172,7 @@ public partial class MainWindow
 			case AddOperation.YT_FILE:
 				Dispatcher.InvokeAsync(async () =>
 				{
-					var yt        = await SoundLibrary.GetYouTubeAudioFileAsync(t, SOUNDS);
+					var yt        = await SoundUtility.GetYtdlpAudioFileAsync(t, SOUNDS);
 					var soundItem = new FixedSoundItem(yt.Path, DEVICE_INDEX);
 					AddSound(soundItem);
 				});

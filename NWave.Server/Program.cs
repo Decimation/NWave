@@ -329,7 +329,7 @@ public sealed class Program
 	{
 		context.Response.ContentType = Text.Plain;
 		var b  = await context.ReadBodyTextAsync();
-		var ok = await Lib.AddYouTubeAudioUrlAsync(b, DEVICE_INDEX);
+		var ok = await Lib.AddYtdlpAudioUrlAsync(b, DEVICE_INDEX);
 		await context.Response.WriteAsync($"{b} : {ok}", ServerUtil.Encoding);
 
 		await context.Response.CompleteAsync();
@@ -340,7 +340,7 @@ public sealed class Program
 	{
 		context.Response.ContentType = Text.Plain;
 		var b  = await context.ReadBodyTextAsync();
-		var ok = await Lib.AddYouTubeAudioFileAsync(b, DEVICE_INDEX);
+		var ok = await Lib.AddYtdlpAudioFileAsync(b, DEVICE_INDEX);
 		await context.Response.WriteAsync($"{b} : {ok}", ServerUtil.Encoding);
 
 		await context.Response.CompleteAsync();

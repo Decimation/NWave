@@ -44,9 +44,9 @@ public class SoundLibrary : IDisposable
 		return files;
 	}
 
-	public async Task<bool> AddYouTubeAudioUrlAsync(string u, int di)
+	public async Task<bool> AddYtdlpAudioUrlAsync(string u, int di)
 	{
-		var yt = (await GetYouTubeAudioUrlAsync(u));
+		var yt = (await SoundUtility.GetYtdlpAudioUrlAsync(u));
 		var y  = yt.Audio;
 		if (!string.IsNullOrWhiteSpace(y)) {
 			return TryAdd(new DynamicSoundItem(y, yt.Title, di));
@@ -55,9 +55,9 @@ public class SoundLibrary : IDisposable
 		return false;
 	}
 
-	public async Task<bool> AddYouTubeAudioFileAsync(string u, int di)
+	public async Task<bool> AddYtdlpAudioFileAsync(string u, int di)
 	{
-		var yt = await GetYouTubeAudioFileAsync(u, RootDir);
+		var yt = await SoundUtility.GetYtdlpAudioFileAsync(u, RootDir);
 		var y  = yt.Path;
 		if (!string.IsNullOrWhiteSpace(y)) {
 			return TryAdd(new FixedSoundItem(y, di));
@@ -65,79 +65,6 @@ public class SoundLibrary : IDisposable
 
 		return false;
 	}
-
-	#region YT
-
-	public static async Task<string[]> ytdlp_async(string cmd, CancellationToken c = default)
-	{
-		var stderr = new StringBuilder();
-		var stdout = new StringBuilder();
-
-		var task = CliWrap.Cli.Wrap("yt-dlp")
-			.WithArguments(cmd)
-			.WithStandardErrorPipe(PipeTarget.ToStringBuilder(stderr))
-			.WithStandardOutputPipe(PipeTarget.ToStringBuilder(stdout))
-			.WithValidation(CommandResultValidation.None)
-			.ExecuteAsync(c);
-
-		var res = await task;
-
-		if (res.ExitCode == 0) {
-			return (stdout.ToString()).Split('\n');
-		}
-
-		return null;
-	}
-
-	public record YouTubeVideo
-	{
-
-		public Url Url { get; init; }
-
-		public string Id { get; init; }
-
-		public string Title { get; init; }
-
-		public Url Audio { get; init; }
-
-		public Url Video { get; init; }
-
-		[CanBeNull]
-		public string Path { get; init; }
-
-	}
-
-	public static async Task<YouTubeVideo> GetYouTubeAudioFileAsync(string u, string p, CancellationToken c = default)
-	{
-		p = Path.TrimEndingDirectorySeparator(p);
-
-		var x = await ytdlp_async($"--print after_move:filepath,id,title -x \"{u}\" --audio-format wav -P \"{p}\"", c);
-
-		return new YouTubeVideo()
-		{
-			Url = u,
-			Audio = null, 
-			Id = x[1], 
-			Path = x[0], 
-			Title = x[2]
-		};
-	}
-
-	public static async Task<YouTubeVideo> GetYouTubeAudioUrlAsync(string u, CancellationToken c = default)
-	{
-		var urls  = await ytdlp_async($"--get-url {u} --print id,title -x", c);
-		var urls1 = urls;
-
-		return new YouTubeVideo()
-		{
-			Url   = u,
-			Id    = urls1[0],
-			Title = urls1[1],
-			Audio = urls1[2]
-		};
-	}
-
-	#endregion
 
 	public IEnumerable<BaseSoundItem> FindSoundsByNames(IEnumerable<string> rnames)
 	{

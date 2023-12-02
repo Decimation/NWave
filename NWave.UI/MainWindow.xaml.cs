@@ -31,6 +31,9 @@ using NAudio.Wave;
 using Novus.Win32;
 using Novus.Win32.Structures.User32;
 using NWave.Lib;
+using System.Reflection;
+using System.Windows.Forms;
+using Control = System.Windows.Controls.Control;
 
 // ReSharper disable InconsistentNaming
 
@@ -66,8 +69,8 @@ public partial class MainWindow : Window, INotifyPropertyChanged
 		IEnumerable<string> files = EnumFiles(SOUNDS);
 
 		Sounds = new ObservableCollection<BaseSoundItem>(files.Select(x => new FixedSoundItem(x, DEVICE_INDEX)));
-
 		Lv_Sounds.ItemsSource    = Sounds;
+		
 		Cb_InputType.ItemsSource = Item_Ops;
 
 		m_bg = new DispatcherTimer(DispatcherPriority.Normal)
@@ -76,6 +79,7 @@ public partial class MainWindow : Window, INotifyPropertyChanged
 			IsEnabled = true,
 
 		};
+
 		m_bg.Tick += Ticker;
 
 	}
@@ -96,9 +100,12 @@ public partial class MainWindow : Window, INotifyPropertyChanged
 		if (await m_semaphore.WaitAsync(TimeSpan.Zero)) {
 			return;
 		}
+		
+		var items = Sounds.Where(x => x.Status.IsIndeterminate());
 
-		foreach (var item in Sounds.Where(x => x.Status.IsIndeterminate())) {
+		foreach (var item in items) {
 			// Debug.WriteLine($"updating {item}");
+			
 			item.UpdateProperties();
 		}
 
@@ -138,9 +145,7 @@ public partial class MainWindow : Window, INotifyPropertyChanged
 
 	private const int DEVICE_INDEX = 3;
 
-	public const int HOOK_ID  = 9000;
-	public const int HOOK_ID1 = 9001;
-	public const int HOOK_ID2 = 9002;
+	public const int HOOK_ID = 9000;
 
 	private IntPtr HwndHook(IntPtr hwnd, int msg, IntPtr wParam, IntPtr lParam, ref bool handled)
 	{
@@ -165,31 +170,29 @@ public partial class MainWindow : Window, INotifyPropertyChanged
 							});
 						}
 
-						handled = true;
-						break;
-					case HOOK_ID1:
-						int vkey1 = (((int) lParam >> 16) & 0xFFFF);
-
-						if (vkey1 == (uint) VirtualKey.UP) {
+						if (vkey == (uint) VirtualKey.UP) {
 							//handle global hot key here...
-							Debug.Print($"{vkey1}!!");
-							Lv_Sounds.SelectedIndex--;
+							Debug.Print($"{vkey}!!");
+
+							int index = Lv_Sounds.SelectedIndex - 1;
+
+							if (index >= 0) {
+								Lv_Sounds.SelectedIndex = index;
+
+							}
 						}
 
-						handled = true;
-						break;
-					case HOOK_ID2:
-						int vkey2 = (((int) lParam >> 16) & 0xFFFF);
-
-						if (vkey2 == (uint) VirtualKey.DOWN) {
+						if (vkey == (uint) VirtualKey.DOWN) {
 							//handle global hot key here...
-							Debug.Print($"{vkey2}!!");
+							Debug.Print($"{vkey}!!");
 							Lv_Sounds.SelectedIndex++;
 
 						}
 
 						handled = true;
+
 						break;
+
 				}
 
 				break;
@@ -207,18 +210,16 @@ public partial class MainWindow : Window, INotifyPropertyChanged
 		Native.RegisterHotKey(m_h.Handle, HOOK_ID, HotKeyModifiers.MOD_CONTROL | HotKeyModifiers.MOD_SHIFT,
 		                      (uint) VirtualKey.KEY_P);
 
-		Native.RegisterHotKey(m_h.Handle, HOOK_ID1, HotKeyModifiers.MOD_CONTROL | HotKeyModifiers.MOD_SHIFT,
+		Native.RegisterHotKey(m_h.Handle, HOOK_ID, HotKeyModifiers.MOD_CONTROL | HotKeyModifiers.MOD_SHIFT,
 		                      (uint) VirtualKey.UP);
 
-		Native.RegisterHotKey(m_h.Handle, HOOK_ID2, HotKeyModifiers.MOD_CONTROL | HotKeyModifiers.MOD_SHIFT,
+		Native.RegisterHotKey(m_h.Handle, HOOK_ID, HotKeyModifiers.MOD_CONTROL | HotKeyModifiers.MOD_SHIFT,
 		                      (uint) VirtualKey.DOWN);
 	}
 
 	private void OnClosing(object? sender, CancelEventArgs e)
 	{
 		Native.UnregisterHotKey(m_h.Handle, HOOK_ID);
-		Native.UnregisterHotKey(m_h.Handle, HOOK_ID1);
-		Native.UnregisterHotKey(m_h.Handle, HOOK_ID2);
 		Debug.Print("Unregistered");
 	}
 
@@ -233,4 +234,13 @@ public partial class MainWindow : Window, INotifyPropertyChanged
 
 	#endregion
 
+}
+
+public static class ControlExtensions
+{
+	public static void DoubleBuffering(this Control control, bool enable)
+	{
+		var method = typeof(Control).GetMethod("SetStyle", BindingFlags.Instance | BindingFlags.NonPublic);
+		method.Invoke(control, new object[] { ControlStyles.OptimizedDoubleBuffer, enable });
+	}
 }
