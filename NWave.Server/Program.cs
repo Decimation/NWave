@@ -80,7 +80,7 @@ public sealed class Program
 		{
 			throw new InvalidOperationException("Sample Exception");
 		});
-		;
+
 		// _app.UseHsts();
 
 		// _app.UseAuthorization();
@@ -118,10 +118,6 @@ public sealed class Program
 
 		await _app.RunAsync();
 	}
-
-	#region
-
-	#endregion
 
 	public static WebApplication _app;
 

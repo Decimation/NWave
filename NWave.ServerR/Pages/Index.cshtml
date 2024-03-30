@@ -1,0 +1,13 @@
+﻿@model IEnumerable<NWave.ServerR.Model.SoundItem>
+@{
+	ViewData["Title"] = "Index";
+}
+
+@foreach (var item in Model) {
+	<tr>
+		<td> @Html.DisplayFor(mi => item.Name)</td>
+	</tr>
+	<button type="button" onclick="location.href = '@Url.Action("ButtonClicked", "Sound", new { id = item.ID })'">
+		@item.Name
+	</button>
+}

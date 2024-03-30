@@ -1,55 +1,83 @@
-﻿using System.Net.Mime;
+﻿// Author: Deci | Project: NWave.ServerR | Name: SoundController.cs
+// Date: 2024/3/30 @ 14:55:55
+
+using System.Net.Mime;
 using Kantan.Text;
+using Microsoft.AspNetCore.Mvc;
 using NWave.Lib;
+using NWave.ServerR.Model;
 
-namespace NWave.Server;
+namespace NWave.ServerR.Controllers;
 
-public static class Routes
+[ApiController]
+[Route("[controller]")]
+public class SoundController : Controller
 {
 
-	static Routes()
-	{
-		Routes.Lib = new SoundLibrary();
+	private readonly ISoundItemService m_service;
 
+	private SoundLibrary SndLib => ((SoundItemService) m_service).SndLib;
+
+	public SoundController(ISoundItemService service)
+	{
+
+		m_service = service;
+	}
+
+	// GET
+	public IActionResult Index()
+	{
+
+		return View(m_service.GetAllSoundsAsync());
+	}
+
+	[HttpGet]
+	public IActionResult ButtonClicked(int id)
+	{
+		// Logic for handling button click
+		// For demo purposes, simply return the ID as content
+		return Content($"Button {id} clicked");
 	}
 
 	public const int DEVICE_INDEX = 3;
 
 	public const string SOUNDS = @"H:\Other Music\Audio resources\NMicspam\";
 
-	public static readonly SoundLibrary Lib;
-
-	public static void Init()
+	public void Init()
 	{
-		Routes.Lib.InitDirectory(Routes.SOUNDS, Routes.DEVICE_INDEX);
+		SndLib.InitDirectory(SOUNDS, DEVICE_INDEX);
 
 	}
+
+	#region
 
 	/// <summary>
 	/// <list type="bullet">
 	/// <item>Body: multiple [absolute file path]</item>
 	/// </list>
 	/// </summary>
-	public static async Task AddAsync(HttpContext ctx)
+	[HttpPost]
+	public async Task<IActionResult> AddAsync(HttpContext ctx)
 	{
 		var bodyEntries = await ctx.ReadBodyEntriesAsync();
 		ctx.Response.ContentType = MediaTypeNames.Text.Plain;
 
 		foreach (var s in bodyEntries) {
-			if (!File.Exists(s)) {
+			if (!System.IO.File.Exists(s)) {
 				await ctx.Response.WriteAsync($"{s}: not found\n", ServerUtil.Encoding);
 				continue;
 			}
 
 			var si = new FixedSoundItem(s, DEVICE_INDEX);
 
-			var b = Lib.TryAdd(si);
+			var b = SndLib.TryAdd(si);
 			await ctx.Response.WriteAsync($"{si}: {b}\n", ServerUtil.Encoding);
 
 			// LoggerExtensions.LogInformation(Program._logger, "Added {Sound}: {OK}", si, b);
 		}
 
 		await ctx.Response.CompleteAsync();
+		return Empty;
 	}
 
 	/// <summary>
@@ -58,7 +86,8 @@ public static class Routes
 	/// <item>Body: multiple [name contains]</item>
 	/// </list>
 	/// </summary>
-	public static async Task RemoveAsync(HttpContext ctx)
+	[HttpPost]
+	public async Task<IActionResult> RemoveAsync(HttpContext ctx)
 	{
 		ctx.Response.ContentType = MediaTypeNames.Text.Plain;
 
@@ -66,13 +95,14 @@ public static class Routes
 
 		foreach (BaseSoundItem snd in snds) {
 
-			var b = Lib.TryRemove(snd);
+			var b = SndLib.TryRemove(snd);
 			await ctx.Response.WriteAsync($"{snd}: {b}\n", ServerUtil.Encoding);
 			Program._logger.LogInformation("Removed {Sound}: {OK}", snd, b);
 
 		}
 
 		await ctx.Response.CompleteAsync();
+		return Empty;
 	}
 
 	/// <summary>
@@ -81,7 +111,8 @@ public static class Routes
 	/// <item>Body: multiple [name contains]</item>
 	/// </list>
 	/// </summary>
-	public static async Task PlayAsync(HttpContext context)
+	[HttpPost]
+	public async Task<IActionResult> PlayAsync(HttpContext context)
 	{
 		// string audioFilePath = @"H:\Other Music\Audio resources\NMicspam\ow.wav"; // Change this to the path of your audio file
 		var snds = await GetSoundsBySelectionModeAsync(context, MODE_SIMPLE);
@@ -100,7 +131,7 @@ public static class Routes
 		}
 
 		await context.Response.CompleteAsync();
-
+		return Empty;
 	}
 
 	/// <summary>
@@ -109,7 +140,8 @@ public static class Routes
 	/// <item>Body: multiple [name contains]</item>
 	/// </list>
 	/// </summary>
-	public static async Task PauseAsync(HttpContext context)
+	[HttpPost]
+	public async Task<IActionResult> PauseAsync(HttpContext context)
 	{
 		var snds = await GetSoundsBySelectionModeAsync(context, MODE_SIMPLE);
 
@@ -123,6 +155,7 @@ public static class Routes
 		}
 
 		await context.Response.CompleteAsync();
+		return Empty;
 
 	}
 
@@ -132,7 +165,8 @@ public static class Routes
 	/// <item>Body: multiple [name contains]</item>
 	/// </list>
 	/// </summary>
-	public static async Task StopAsync(HttpContext context)
+	[HttpPost]
+	public async Task<IActionResult> StopAsync(HttpContext context)
 	{
 		var snds = await GetSoundsBySelectionModeAsync(context, MODE_SIMPLE);
 
@@ -146,14 +180,16 @@ public static class Routes
 		}
 
 		await context.Response.CompleteAsync();
+		return Empty;
 
 	}
 
-	public static async Task UpdateAsync(HttpContext context)
+	[HttpPost]
+	public async Task<IActionResult> UpdateAsync(HttpContext context)
 	{
 		context.Response.ContentType = MediaTypeNames.Text.Plain;
 		var snds  = await GetSoundsBySelectionModeAsync(context, MODE_SIMPLE);
-		var items = snds as BaseSoundItem[] ?? snds.ToArray<BaseSoundItem>();
+		var items = snds as BaseSoundItem[] ?? Enumerable.ToArray<BaseSoundItem>(snds);
 		Program._logger.LogInformation("Sounds: {Sounds}", items.QuickJoin());
 		var opt   = context.Request.Headers.TryGetValue(HDR_VOL, out var sv);
 		var snds2 = items.Where(s => s.SupportsVolume).ToArray();
@@ -176,6 +212,7 @@ public static class Routes
 		}
 
 		await context.Response.CompleteAsync();
+		return Empty;
 
 	}
 
@@ -184,7 +221,8 @@ public static class Routes
 	/// <item>Body: none</item>
 	/// </list>
 	/// </summary>
-	public static async Task StatusAsync(HttpContext context)
+	[HttpGet]
+	public async Task<IActionResult> StatusAsync(HttpContext context)
 	{
 		IEnumerable<BaseSoundItem> snds = await GetSoundsBySelectionModeAsync(context);
 		snds = snds.Where(s => s.Status.IsIndeterminate()).ToArray();
@@ -200,6 +238,7 @@ public static class Routes
 		}
 
 		await context.Response.CompleteAsync();
+		return Empty;
 	}
 
 	/// <summary>
@@ -207,39 +246,46 @@ public static class Routes
 	/// <item>Body: none</item>
 	/// </list>
 	/// </summary>
-	public static async Task ListAsync(HttpContext ctx)
+	[HttpGet]
+	public async Task<IActionResult> ListAsync(HttpContext ctx)
 	{
 		ctx.Response.ContentType = MediaTypeNames.Text.Plain;
 
-		foreach ((var key, var _) in Lib.Sounds) {
+		foreach ((var key, var _) in SndLib.Sounds) {
 			await ctx.Response.WriteAsync($"{key.Name}\n", ServerUtil.Encoding);
 
 		}
 
 		await ctx.Response.CompleteAsync();
+		return Empty;
 	}
 
-	public static async Task AddYouTubeAudioUrlAsync(HttpContext context)
+	[HttpPost]
+	public async Task<IActionResult> AddYouTubeAudioUrlAsync(HttpContext context)
 	{
 		context.Response.ContentType = MediaTypeNames.Text.Plain;
 		var b  = await context.ReadBodyTextAsync();
-		var ok = await Lib.AddYtdlpAudioUrlAsync(b, DEVICE_INDEX);
+		var ok = await SndLib.AddYtdlpAudioUrlAsync(b, DEVICE_INDEX);
 		await context.Response.WriteAsync($"{b} : {ok}", ServerUtil.Encoding);
 
 		await context.Response.CompleteAsync();
 
+		return Empty;
 	}
 
-	public static async Task AddYouTubeAudioFileAsync(HttpContext context)
+	[HttpPost]
+	public async Task<IActionResult> AddYouTubeAudioFileAsync(HttpContext context)
 	{
 		context.Response.ContentType = MediaTypeNames.Text.Plain;
 		var b  = await context.ReadBodyTextAsync();
-		var ok = await Lib.AddYtdlpAudioFileAsync(b, DEVICE_INDEX);
+		var ok = await SndLib.AddYtdlpAudioFileAsync(b, DEVICE_INDEX);
 		await context.Response.WriteAsync($"{b} : {ok}", ServerUtil.Encoding);
 
 		await context.Response.CompleteAsync();
-
+		return Empty;
 	}
+
+	#endregion
 
 	public const string MODE_SIMPLE = "Simple";
 
@@ -249,7 +295,7 @@ public static class Routes
 
 	public const string HDR_VOL = "Vol";
 
-	private static async Task<IEnumerable<BaseSoundItem>> GetSoundsBySelectionModeAsync(HttpContext context,
+	private async Task<IEnumerable<BaseSoundItem>> GetSoundsBySelectionModeAsync(HttpContext context,
 		string selMode = MODE_SIMPLE)
 	{
 		var bodyEntries = await context.ReadBodyEntriesAsync();
@@ -266,11 +312,13 @@ public static class Routes
 
 		switch (mode) {
 			case MODE_REGEX:
-				snds = Lib.FindByPattern(bodyEntries[0]);
+				snds = SndLib.FindByPattern(bodyEntries[0]);
 				break;
+
 			case MODE_SIMPLE:
-				snds = Lib.FindSoundsByNames(bodyEntries);
+				snds = SndLib.FindSoundsByNames(bodyEntries);
 				break;
+
 			default:
 				goto case MODE_SIMPLE;
 		}

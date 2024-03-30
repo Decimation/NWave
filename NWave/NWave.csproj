@@ -16,7 +16,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="CliWrap" Version="3.6.5-test" />
+    <PackageReference Include="CliWrap" Version="3.6.6" />
     <PackageReference Include="Jetbrains.Annotations" Version="2023.3.0" />
     <PackageReference Include="Microsoft.Extensions.Logging" Version="8.0.0" />
     <PackageReference Include="Microsoft.Extensions.Logging.Configuration" Version="8.0.0" />
