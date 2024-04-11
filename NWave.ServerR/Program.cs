@@ -6,6 +6,7 @@ namespace NWave.ServerR;
 
 public class Program
 {
+
 	public static  ILogger<Program> _logger;
 	private static WebApplication   _app;
 
@@ -15,11 +16,15 @@ public class Program
 		var builder = WebApplication.CreateBuilder(args);
 
 		// Add services to the container.
-		builder.Services.AddRazorPages();
+		// builder.Services.AddRazorPages();
+		builder.Services.AddControllers();
+
 		// builder.Services.AddMvc().AddControllersAsServices();
 
 		builder.Services.AddScoped<ISoundItemService, SoundItemService>();
-		builder.Services.AddControllersWithViews().AddControllersAsServices();
+		// builder.Services.AddControllersWithViews().AddControllersAsServices();
+		builder.Services.AddEndpointsApiExplorer();
+		builder.Services.AddSwaggerGen();
 
 		_app = builder.Build();
 
@@ -31,15 +36,44 @@ public class Program
 			_app.UseHsts();
 		}
 
-		_app.MapControllers();
-		// _app.UseHttpsRedirection();
-		_app.UseStaticFiles();
-		_app.UseDefaultFiles();
+		else {
+			_app.UseSwagger();
+			_app.UseSwaggerUI();
+		}
 
-		_app.UseRouting();
+		_app.MapControllers();
+		/*_app.MapControllerRoute(
+			name: "default",
+			pattern: "{controller=Sound}/{action=id}")*/
+		;
+		_app.MapControllerRoute(
+			name: "default",
+			pattern: "{controller=Sound}/{action=Index}");
+		
+		_app.MapControllerRoute("list", "list/", new { controller = "Sound", action = "List" });
+
+		/*
+		private void RegisterCheckoutRoute(IEndpointRouteBuilder endpointRouteBuilder, string pattern)
+		{
+			//checkout pages
+			endpointRouteBuilder.MapControllerRoute("Checkout",
+			                                        pattern + "checkout/",
+			                                        new { controller = "Checkout", action = "Start" });
+
+			endpointRouteBuilder.MapControllerRoute("CheckoutCompleted",
+			                                        pattern + "checkout/completed/{orderId?}",
+			                                        new { controller = "Checkout", action = "Completed" });
+		}
+		*/
+
+		_app.UseHttpsRedirection();
+		// _app.UseStaticFiles();
+		// _app.UseDefaultFiles();
+
+		// _app.UseRouting();
 		// _app.UseMvc();
 		_app.UseAuthorization();
-		_app.MapRazorPages();
+		// _app.MapRazorPages();
 
 		using var loggerFactory = LoggerFactory.Create(b =>
 		{
@@ -64,7 +98,7 @@ public class Program
 		_app.MapPost("/Update", SoundController.UpdateAsync);
 		_app.MapPost("/AddYouTubeFile", SoundController.AddYouTubeAudioFileAsync);
 		_app.MapPost("/AddYouTubeUrl", SoundController.AddYouTubeAudioUrlAsync);*/
-		
+
 		_logger.LogDebug("dbg");
 
 		await _app.RunAsync();

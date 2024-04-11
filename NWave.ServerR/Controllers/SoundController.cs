@@ -25,10 +25,11 @@ public class SoundController : Controller
 	}
 
 	// GET
+	[HttpGet]
 	public IActionResult Index()
 	{
 
-		return View(m_service.GetAllSoundsAsync());
+		return ;
 	}
 
 	[HttpGet]
@@ -77,7 +78,7 @@ public class SoundController : Controller
 		}
 
 		await ctx.Response.CompleteAsync();
-		return Empty;
+		return View("Index");
 	}
 
 	/// <summary>
@@ -246,18 +247,22 @@ public class SoundController : Controller
 	/// <item>Body: none</item>
 	/// </list>
 	/// </summary>
-	[HttpGet]
-	public async Task<IActionResult> ListAsync(HttpContext ctx)
+	[HttpGet("{s}")]
+	public async IAsyncEnumerable<BaseSoundItem> ListAsync(string? s)
 	{
-		ctx.Response.ContentType = MediaTypeNames.Text.Plain;
+		// ctx.Response.ContentType = MediaTypeNames.Text.Plain;
 
 		foreach ((var key, var _) in SndLib.Sounds) {
-			await ctx.Response.WriteAsync($"{key.Name}\n", ServerUtil.Encoding);
+			// await ctx.Response.WriteAsync($"{key.Name}\n", ServerUtil.Encoding);
+			// return Content()
+			yield return key;
 
 		}
 
-		await ctx.Response.CompleteAsync();
-		return Empty;
+		// return NoContent();
+
+		// await ctx.Response.CompleteAsync();
+		// return View("Index");
 	}
 
 	[HttpPost]
