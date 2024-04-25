@@ -33,4 +33,12 @@
     </Reference>
   </ItemGroup>
 
+  <ItemGroup>
+    <UpToDateCheckInput Remove="Views\Home\List.cshtml" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <_ContentIncludedByDefault Remove="Views\Home\List.cshtml" />
+  </ItemGroup>
+
 </Project>

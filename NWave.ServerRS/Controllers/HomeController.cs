@@ -32,6 +32,12 @@ namespace NWave.ServerRS.Controllers
 			return View();
 		}
 
+		public IActionResult List()
+		{
+			var select = snd.Sounds.Keys.Select(x => new SoundModel() { Sound = x, Name = x.Name });
+			return View(select);
+		}
+
 		[ResponseCache(Duration = 0, Location = ResponseCacheLocation.None, NoStore = true)]
 		public IActionResult Error()
 		{
