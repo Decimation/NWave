@@ -1,6 +1,5 @@
-﻿namespace NWave.ServerRS.Models
+﻿namespace NWave.ServerRS.Models;
+
+public class SoundList
 {
-	public class SoundList
-	{
-	}
 }

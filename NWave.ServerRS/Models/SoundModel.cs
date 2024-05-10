@@ -1,11 +1,10 @@
 ﻿using NWave.Lib;
 
-namespace NWave.ServerRS.Models
-{
-	public class SoundModel
-	{
-		public BaseSoundItem Sound { get; set; }
+namespace NWave.ServerRS.Models;
 
-		public string Name { get; set; }
-	}
+public class SoundModel
+{
+	public BaseSoundItem Sound { get; set; }
+
+	public string Name { get; set; }
 }

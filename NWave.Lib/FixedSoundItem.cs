@@ -9,7 +9,7 @@ namespace NWave.Lib;
 public class FixedSoundItem : BaseSoundItem
 {
 
-	public FixedSoundItem(string fullName, int idx) : base(fullName, idx)
+	public FixedSoundItem(string fullName, int idx, int? id = null) : base(fullName, idx, id)
 	{
 		Out = new WaveOut()
 		{

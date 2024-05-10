@@ -20,7 +20,7 @@ public class DynamicSoundItem : BaseSoundItem
 
 	public Url Url { get; }
 
-	public DynamicSoundItem(string url, string fullName, int idx) : base(fullName, idx)
+	public DynamicSoundItem(string url, string fullName, int idx, int? id = null) : base(fullName, idx, id)
 	{
 		Url      = url;
 		Out      = new WaveOut()

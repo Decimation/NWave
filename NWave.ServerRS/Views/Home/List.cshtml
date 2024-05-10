@@ -10,9 +10,26 @@
 	<title>title</title>
 </head>
 <body>
-}
+
 @foreach (var i in Model) {
-	<div>@i.Name</div>
+	<tr>
+		<td>
+			@Html.DisplayFor(modelItem => i.Name)
+		</td>
+		<td>
+			@Html.DisplayFor(modelItem => i.Sound.Status)
+		</td>
+		<td>
+			@* <button type="button" onclick="('@i.Name')">Invoke Method</button> *@
+
+			<a asp-action="Play">Play</a>
+			@* <a class="btn btn-primary" href="@Url.Action("Play", "Home", new { @i })">Click</a> *@
+			@* <button type="button" onclick="location.href='@Url.Action("Play", "Home")'" value="@i.Name"/> *@
+			@*<a asp-action="Play" asp-route-id="@i.Name">Play</a> |*@
+			@* <a asp-action="Details" asp-route-id="@i.Sound.Position">Details</a> | *@
+			@* <a asp-action="Delete" asp-route-id="@item.Id">Delete</a> *@
+		</td>
+	</tr>
 }
 </body>
 </html>

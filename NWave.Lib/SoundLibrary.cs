@@ -15,6 +15,7 @@ namespace NWave.Lib;
 
 public class SoundLibrary : IDisposable
 {
+	public int                                         Count  { get; private set; }
 
 	public ConcurrentDictionary<BaseSoundItem, object> Sounds { get; } = new();
 

@@ -1,13 +1,58 @@
-﻿@model IEnumerable<NWave.ServerR.Model.SoundItem>
+﻿@page
+@model IndexModel
 @{
-	ViewData["Title"] = "Index";
+	ViewData["Title"] = "Home page";
 }
+@addTagHelper *, Microsoft.AspNetCore.Mvc.TagHelpers
+@*<div class="text-center">
+	<h1 class="display-4">Welcome</h1>
+	<p>Learn about <a href="https://learn.microsoft.com/aspnet/core">building Web apps with ASP.NET Core</a>.</p>
+</div>*@
+<div>
+	<table>
+		<tr>
+			<th>Name</th>
+			<th>Status</th>
+			<th>Progress</th>
+			<th>Action</th>
 
-@foreach (var item in Model) {
-	<tr>
-		<td> @Html.DisplayFor(mi => item.Name)</td>
-	</tr>
-	<button type="button" onclick="location.href = '@Url.Action("ButtonClicked", "Sound", new { id = item.ID })'">
-		@item.Name
-	</button>
-}
+		</tr>
+		@foreach (var file in Model.Sound) {
+
+			<tr>
+				<td>
+					@Html.DisplayFor(f => file.Name)
+				</td>
+				<td>
+					@Html.DisplayFor(f => file.Status)
+				</td>
+				<td>
+					@Html.DisplayFor(f => file.PlaybackProgress)
+				</td>
+				<td>
+					<form method="post">
+						<button asp-page-handler="Play" asp-route-id="@file.Id">@file.Status</button>
+
+					</form>
+
+				</td>
+
+			</tr>
+		}
+
+	</table>
+</div>
+
+<script>
+	function playAudio(path) {
+		fetch('audio/play',
+				{
+					method: 'POST',
+					headers: {
+						'Content-Type': 'application/json'
+					},
+					body: JSON.stringify(path)
+				}).then(response => console.log('Audio playing:', response.ok))
+			.catch(error => console.error('Error playing audio:', error));
+	}
+</script>

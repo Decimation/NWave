@@ -1,8 +1,28 @@
-﻿@{
-    ViewData["Title"] = "Home Page";
+﻿@page
+@model NWave.ServerRS.Views.Home.IndexModel
+@{
 }
+<h1>Audio Player</h1>
 
-<div class="text-center">
-    <h1 class="display-4">Welcome</h1>
-    <p>Learn about <a href="https://learn.microsoft.com/aspnet/core">building Web apps with ASP.NET Core</a>.</p>
+<div>
+	@foreach (var file in Model.AudioFiles)
+	{
+		<div>
+			<span>@file.Name</span>
+			<button onclick="playAudio('@file.Name')">Play</button>
+		</div>
+	}
 </div>
+
+<script>
+	function playAudio(path) {
+		fetch('audio/play', {
+				method: 'POST',
+				headers: {
+					'Content-Type': 'application/json'
+				},
+				body: JSON.stringify(path)
+			}).then(response => console.log('Audio playing:', response.ok))
+			.catch(error => console.error('Error playing audio:', error));
+	}
+</script>

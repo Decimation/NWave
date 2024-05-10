@@ -11,6 +11,7 @@ namespace NWave.Lib;
 
 public abstract class BaseSoundItem : INotifyPropertyChanged, IDisposable
 {
+	public    int?            Id { get; }
 
 	protected PlaybackStatus m_status;
 
@@ -146,7 +147,7 @@ public abstract class BaseSoundItem : INotifyPropertyChanged, IDisposable
 
 	}
 
-	protected BaseSoundItem(string fullName, int idx)
+	protected BaseSoundItem(string fullName, int idx, int? id = null)
 	{
 		/*if (!File.Exists(fullName)) {
 			throw new FileNotFoundException();
@@ -156,7 +157,7 @@ public abstract class BaseSoundItem : INotifyPropertyChanged, IDisposable
 		Name        = Path.GetFileName(FullName);
 		Status      = PlaybackStatus.None;
 		DeviceIndex = idx;
-
+		Id          = id ?? Name.GetHashCode();
 	}
 	public override string ToString()
 	{
