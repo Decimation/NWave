@@ -1,11 +1,13 @@
 ﻿// $User.Name $File.ProjectName $File.FileName
 // $File.CreatedYear-$File.CreatedMonth-$File.CreatedDay @ $File.CreatedHour:$File.CreatedMinute
 
+global using CBN = JetBrains.Annotations.CanBeNullAttribute;
 using System.Text;
 using CliWrap;
 using Flurl;
 using JetBrains.Annotations;
 
+#nullable disable
 namespace NWave.Lib;
 
 public static class SoundUtility
@@ -36,14 +38,15 @@ public static class SoundUtility
 	{
 		p = Path.TrimEndingDirectorySeparator(p);
 
-		var x = await RunYtdlpAsync($"--print after_move:filepath,id,title -x \"{u}\" --audio-format wav -P \"{p}\"", c);
+		var x = await RunYtdlpAsync($"--print after_move:filepath,id,title -x \"{u}\" --audio-format wav -P \"{p}\"",
+		                            c);
 
 		return new YtdlpAudioFile()
 		{
 			Url   = u,
-			Audio = null, 
-			Id    = x[1], 
-			Path  = x[0], 
+			Audio = null,
+			Id    = x[1],
+			Path  = x[0],
 			Title = x[2]
 		};
 	}
@@ -64,7 +67,7 @@ public static class SoundUtility
 
 }
 
-public record YtdlpAudioFile
+public sealed class YtdlpAudioFile
 {
 
 	public Url Url { get; init; }
@@ -73,11 +76,14 @@ public record YtdlpAudioFile
 
 	public string Title { get; init; }
 
+	[CBN]
 	public Url Audio { get; init; }
 
 	public Url Video { get; init; }
 
-	[CanBeNull]
+	[CBN]
 	public string Path { get; init; }
+
+	public YtdlpAudioFile() { }
 
 }

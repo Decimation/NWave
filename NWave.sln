@@ -7,8 +7,6 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "NWave", "NWave\NWave.csproj
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "NWave.Server", "NWave.Server\NWave.Server.csproj", "{FD383648-F34F-4042-A5F7-7C3091CD9652}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "NWave.UI", "NWave.UI\NWave.UI.csproj", "{F424091D-15C5-4280-A19F-C10C5A742B29}"
-EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "NWave.Lib", "NWave.Lib\NWave.Lib.csproj", "{F0F55600-1485-49E4-B8E2-AA33442E6F7C}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{2D62D21F-EA40-4AC6-BD55-F9E0AAAFE8BF}"
@@ -16,9 +14,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution 
 		NWave.Py\main.py = NWave.Py\main.py
 	EndProjectSection
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "NWave.ServerRS", "NWave.ServerRS\NWave.ServerRS.csproj", "{9ACE035D-4FAA-4F34-956C-5778CE7FB61C}"
-EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NWave.ServerR", "NWave.ServerR\NWave.ServerR.csproj", "{D804E2C3-12D9-41A5-8D9E-C949714A3497}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "NWave.ServerR", "NWave.ServerR\NWave.ServerR.csproj", "{D804E2C3-12D9-41A5-8D9E-C949714A3497}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -34,18 +30,10 @@ Global
 		{FD383648-F34F-4042-A5F7-7C3091CD9652}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{FD383648-F34F-4042-A5F7-7C3091CD9652}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{FD383648-F34F-4042-A5F7-7C3091CD9652}.Release|Any CPU.Build.0 = Release|Any CPU
-		{F424091D-15C5-4280-A19F-C10C5A742B29}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{F424091D-15C5-4280-A19F-C10C5A742B29}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{F424091D-15C5-4280-A19F-C10C5A742B29}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{F424091D-15C5-4280-A19F-C10C5A742B29}.Release|Any CPU.Build.0 = Release|Any CPU
 		{F0F55600-1485-49E4-B8E2-AA33442E6F7C}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{F0F55600-1485-49E4-B8E2-AA33442E6F7C}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{F0F55600-1485-49E4-B8E2-AA33442E6F7C}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{F0F55600-1485-49E4-B8E2-AA33442E6F7C}.Release|Any CPU.Build.0 = Release|Any CPU
-		{9ACE035D-4FAA-4F34-956C-5778CE7FB61C}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{9ACE035D-4FAA-4F34-956C-5778CE7FB61C}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{9ACE035D-4FAA-4F34-956C-5778CE7FB61C}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{9ACE035D-4FAA-4F34-956C-5778CE7FB61C}.Release|Any CPU.Build.0 = Release|Any CPU
 		{D804E2C3-12D9-41A5-8D9E-C949714A3497}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{D804E2C3-12D9-41A5-8D9E-C949714A3497}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{D804E2C3-12D9-41A5-8D9E-C949714A3497}.Release|Any CPU.ActiveCfg = Release|Any CPU

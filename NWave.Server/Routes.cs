@@ -1,4 +1,5 @@
 ﻿using System.Net.Mime;
+using System.Text.Json;
 using Kantan.Text;
 using NWave.Lib;
 
@@ -209,13 +210,19 @@ public static class Routes
 	/// </summary>
 	public static async Task ListAsync(HttpContext ctx)
 	{
-		ctx.Response.ContentType = MediaTypeNames.Text.Plain;
+		var js = JsonSerializer.Serialize(Lib.Sounds.Keys);
+		// ctx.Response.ContentType = MediaTypeNames.Text.Plain;
 
+		ctx.Response.ContentType = MediaTypeNames.Application.Json;
+
+		await ctx.Response.WriteAsync(js);
+
+		/*
 		foreach ((var key, var _) in Lib.Sounds) {
-			await ctx.Response.WriteAsync($"{key.Name}\n", ServerUtil.Encoding);
+			// await ctx.Response.WriteAsync($"{key.Name}\n", ServerUtil.Encoding);
 
 		}
-
+		*/
 		await ctx.Response.CompleteAsync();
 	}
 
@@ -268,9 +275,11 @@ public static class Routes
 			case MODE_REGEX:
 				snds = Lib.FindByPattern(bodyEntries[0]);
 				break;
+
 			case MODE_SIMPLE:
 				snds = Lib.FindSoundsByNames(bodyEntries);
 				break;
+
 			default:
 				goto case MODE_SIMPLE;
 		}

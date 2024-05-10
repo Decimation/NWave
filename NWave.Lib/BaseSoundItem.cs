@@ -1,9 +1,11 @@
-﻿// Read S NWave.Lib BaseSoundItem.cs
-// 2023-11-23 @ 2:55 PM
+﻿// Author: Deci | Project: NWave.Lib | Name: BaseSoundItem.cs
+// Date: 2023/11/23 @ 14:11:27
 
 #nullable disable
+
 using System.ComponentModel;
 using System.Runtime.CompilerServices;
+using System.Text.Json.Serialization;
 using JetBrains.Annotations;
 using NAudio.Wave;
 
@@ -11,9 +13,10 @@ namespace NWave.Lib;
 
 public abstract class BaseSoundItem : INotifyPropertyChanged, IDisposable
 {
-	public    int?            Id { get; }
 
 	protected PlaybackStatus m_status;
+
+	public int? Id { get; }
 
 	public string Name { get; }
 
@@ -22,9 +25,10 @@ public abstract class BaseSoundItem : INotifyPropertyChanged, IDisposable
 	public PlaybackStatus Status
 	{
 		get => m_status;
-		set
+		protected set
 		{
 			if (value == m_status) return;
+
 			m_status = value;
 			OnPropertyChanged();
 		}
@@ -34,17 +38,11 @@ public abstract class BaseSoundItem : INotifyPropertyChanged, IDisposable
 
 	public bool IsDisposed { get; protected set; }
 
+	[JsonIgnore]
 	public IWavePlayer Out { get; protected set; }
 
+	[JsonIgnore]
 	public WaveStream Provider { get; protected set; }
-
-	protected void OnHandler([CanBeNull] object sender, StoppedEventArgs args)
-	{
-		Status = PlaybackStatus.Stopped;
-
-	}
-
-	public const float VOL_INVALID = float.NaN;
 
 	public abstract float Volume { get; set; }
 
@@ -57,6 +55,29 @@ public abstract class BaseSoundItem : INotifyPropertyChanged, IDisposable
 	}
 
 	public double PlaybackProgress => Math.Round((Position / (double) Length), 4);
+
+	public abstract bool SupportsVolume { get; }
+
+	public const float VOL_INVALID = float.NaN;
+
+	protected BaseSoundItem(string fullName, int idx, int? id = null)
+	{
+		/*if (!File.Exists(fullName)) {
+			throw new FileNotFoundException();
+		}*/
+
+		FullName    = fullName;
+		Name        = Path.GetFileName(FullName);
+		Status      = PlaybackStatus.None;
+		DeviceIndex = idx;
+		Id          = id ?? Name.GetHashCode();
+	}
+
+	protected void OnHandler([CBN] object sender, StoppedEventArgs args)
+	{
+		Status = PlaybackStatus.Stopped;
+
+	}
 
 	public void UpdateProperties()
 	{
@@ -104,19 +125,19 @@ public abstract class BaseSoundItem : INotifyPropertyChanged, IDisposable
 		CheckDisposed();
 		Status = PlaybackStatus.Stopped;
 		Out.Stop();
+
 		// Dispose();
 	}
 
-	public virtual event PropertyChangedEventHandler PropertyChanged;
-
-	protected virtual void OnPropertyChanged([CanBeNull] [CallerMemberName] string propertyName = null)
+	protected virtual void OnPropertyChanged([CBN] [CallerMemberName] string propertyName = null)
 	{
 		PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
 	}
 
-	protected bool SetField<T>(ref T field, T value, [CanBeNull] [CallerMemberName] string propertyName = null)
+	protected bool SetField<T>(ref T field, T value, [CBN] [CallerMemberName] string propertyName = null)
 	{
 		if (EqualityComparer<T>.Default.Equals(field, value)) return false;
+
 		field = value;
 		OnPropertyChanged(propertyName);
 		return true;
@@ -128,6 +149,11 @@ public abstract class BaseSoundItem : INotifyPropertyChanged, IDisposable
 			throw new ObjectDisposedException($"{Name}", "Disposed");
 
 		}
+	}
+
+	public override string ToString()
+	{
+		return $"{Name} | {Status} | {DeviceIndex} | {Position} | {Length}";
 	}
 
 	public virtual void Dispose()
@@ -147,22 +173,16 @@ public abstract class BaseSoundItem : INotifyPropertyChanged, IDisposable
 
 	}
 
-	protected BaseSoundItem(string fullName, int idx, int? id = null)
-	{
-		/*if (!File.Exists(fullName)) {
-			throw new FileNotFoundException();
-		}*/
+	public virtual event PropertyChangedEventHandler PropertyChanged;
 
-		FullName    = fullName;
-		Name        = Path.GetFileName(FullName);
-		Status      = PlaybackStatus.None;
-		DeviceIndex = idx;
-		Id          = id ?? Name.GetHashCode();
-	}
-	public override string ToString()
-	{
-		return $"{Name} | {Status} | {DeviceIndex} | {Position} | {Length}";
-	}
+}
 
-	public abstract bool SupportsVolume { get; }
+public enum PlaybackStatus
+{
+
+	None,
+	Playing,
+	Paused,
+	Stopped,
+
 }

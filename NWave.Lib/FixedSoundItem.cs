@@ -44,12 +44,3 @@ public class FixedSoundItem : BaseSoundItem
 
 }
 
-public enum PlaybackStatus
-{
-
-	None,
-	Playing,
-	Paused,
-	Stopped,
-
-}

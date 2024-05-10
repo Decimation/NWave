@@ -15,7 +15,8 @@ namespace NWave.Lib;
 
 public class SoundLibrary : IDisposable
 {
-	public int                                         Count  { get; private set; }
+
+	public int Count { get; private set; }
 
 	public ConcurrentDictionary<BaseSoundItem, object> Sounds { get; } = new();
 
@@ -49,6 +50,7 @@ public class SoundLibrary : IDisposable
 	{
 		var yt = (await SoundUtility.GetYtdlpAudioUrlAsync(u));
 		var y  = yt.Audio;
+
 		if (!string.IsNullOrWhiteSpace(y)) {
 			return TryAdd(new DynamicSoundItem(y, yt.Title, di));
 		}
@@ -60,6 +62,7 @@ public class SoundLibrary : IDisposable
 	{
 		var yt = await SoundUtility.GetYtdlpAudioFileAsync(u, RootDir);
 		var y  = yt.Path;
+
 		if (!string.IsNullOrWhiteSpace(y)) {
 			return TryAdd(new FixedSoundItem(y, di));
 		}
@@ -72,7 +75,10 @@ public class SoundLibrary : IDisposable
 		var s1s = rnames as string[] ?? rnames.ToArray();
 
 		if (s1s.Length == 0) {
-			return Sounds.Keys.AsEnumerable();
+
+			return Enumerable.Empty<BaseSoundItem>();
+
+			// return Sounds.Keys.AsEnumerable();
 		}
 
 		var buf = new List<BaseSoundItem>(s1s.Length);
@@ -113,7 +119,7 @@ public class SoundLibrary : IDisposable
 		return snds;
 	}
 
-	[CanBeNull]
+	[CBN]
 	public BaseSoundItem FindSoundByName(string rname)
 	{
 		var kv = Sounds.FirstOrDefault(x =>

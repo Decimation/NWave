@@ -1,5 +1,6 @@
 ﻿#define WINDOWS
 using System.Management;
+using System.Net;
 using NAudio;
 using NAudio.Wave;
 using NAudio.Wave;

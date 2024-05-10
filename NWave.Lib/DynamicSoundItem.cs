@@ -22,8 +22,9 @@ public class DynamicSoundItem : BaseSoundItem
 
 	public DynamicSoundItem(string url, string fullName, int idx, int? id = null) : base(fullName, idx, id)
 	{
-		Url      = url;
-		Out      = new WaveOut()
+		Url = url;
+
+		Out = new WaveOut()
 		{
 			DeviceNumber = idx
 

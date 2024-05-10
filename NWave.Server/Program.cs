@@ -5,6 +5,7 @@ using System.Text.RegularExpressions;
 using CliWrap;
 using Flurl;
 using Kantan.Text;
+using Microsoft.AspNetCore.Cors.Infrastructure;
 using Microsoft.AspNetCore.Diagnostics;
 using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Mvc;
@@ -36,6 +37,15 @@ public sealed class Program
 		// builder.Services.AddEndpointsApiExplorer();
 		// builder.Services.AddSwaggerGen();
 		// builder.Services.AddRazorPages();
+		/*builder.Services.AddCors(x =>
+		{
+			x.AddDefaultPolicy(new CorsPolicy()
+			{
+				Origins = {  "*" },
+				Methods = {"*" },
+				Headers = { "*" }
+			});
+		});*/
 
 		_app = builder.Build();
 
@@ -75,6 +85,8 @@ public sealed class Program
 				await Results.Problem().ExecuteAsync(context);
 			});
 		});
+		
+		// _app.UseCors();
 
 		_app.Map("/exception", () =>
 		{
@@ -98,7 +110,8 @@ public sealed class Program
 		_logger = loggerFactory.CreateLogger<Program>();
 
 		// Configure the HTTP request pipeline.
-		if (_app.Environment.IsDevelopment()) {
+		if (_app.Environment.IsDevelopment())
+		{
 			// _app.UseSwagger();
 			// _app.UseSwaggerUI();
 		}
@@ -113,7 +126,7 @@ public sealed class Program
 		_app.MapPost("/Update", Routes.UpdateAsync);
 		_app.MapPost("/AddYouTubeFile", Routes.AddYouTubeAudioFileAsync);
 		_app.MapPost("/AddYouTubeUrl", Routes.AddYouTubeAudioUrlAsync);
-		
+
 		_logger.LogDebug("dbg");
 
 		await _app.RunAsync();
