@@ -58,9 +58,9 @@ public abstract class BaseSoundItem : INotifyPropertyChanged, IDisposable
 
 	public abstract bool SupportsVolume { get; }
 
-	public const float VOL_INVALID = float.NaN;
+	public const float VOL_INVALID = Single.NaN;
 
-	protected BaseSoundItem(string fullName, int idx, int? id = null)
+	protected BaseSoundItem(string fullName, int idx = SoundLibrary.DEFAULT_DEVICE_INDEX, int? id = null)
 	{
 		/*if (!File.Exists(fullName)) {
 			throw new FileNotFoundException();

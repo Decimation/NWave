@@ -23,12 +23,18 @@ public sealed class Program
 
 	static Program() { }
 
+	public static WebApplication   App;
+	public static ILogger<Program> Logger;
+
+	public const int DEVICE_INDEX = 1;
+
+	public const string SOUNDS = @"H:\Other Music\Audio resources\NMicspam\";
+
 	public static async Task Main(string[] args)
 	{
 
-		Routes.Init();
-
 		var builder = WebApplication.CreateBuilder(args);
+		builder.Configuration.AddCommandLine(args);
 
 		// Add services to the container.
 
@@ -47,7 +53,24 @@ public sealed class Program
 			});
 		});*/
 
-		_app = builder.Build();
+		App = builder.Build();
+
+		string dir, s;
+		int    di;
+
+#if DEBUG
+		dir = SOUNDS;
+		di  = DEVICE_INDEX;
+#else
+		dir = App.Configuration["sourceDirectory"];
+		s = App.Configuration["deviceId"];
+		di = Int32.Parse(s);
+#endif
+
+
+		if (!Routes.Lib.InitDirectory(dir, di)) {
+			throw new ArgumentException($"{dir} / {di}");
+		}
 
 		// _app.UseAuthentication();
 		/*
@@ -77,21 +100,17 @@ public sealed class Program
 		});
 		*/
 
-		_app.UseExceptionHandler(exceptionHandlerApp =>
+		App.UseExceptionHandler(exceptionHandlerApp =>
 		{
 			exceptionHandlerApp.Run(async context =>
 			{
-
 				await Results.Problem().ExecuteAsync(context);
 			});
 		});
-		
+
 		// _app.UseCors();
 
-		_app.Map("/exception", () =>
-		{
-			throw new InvalidOperationException("Sample Exception");
-		});
+		App.Map("/exception", () => { throw new InvalidOperationException("Sample Exception"); });
 
 		// _app.UseHsts();
 
@@ -102,38 +121,30 @@ public sealed class Program
 		// _app.UseAuthorization();
 		// App.MapControllers();
 
-		using var loggerFactory = LoggerFactory.Create(b =>
-		{
-			b.AddConsole().AddDebug().AddTraceSource("TRACE");
-		});
+		using var loggerFactory = LoggerFactory.Create(b => { b.AddConsole().AddDebug().AddTraceSource("TRACE"); });
 
-		_logger = loggerFactory.CreateLogger<Program>();
+		Logger = loggerFactory.CreateLogger<Program>();
 
 		// Configure the HTTP request pipeline.
-		if (_app.Environment.IsDevelopment())
-		{
+		if (App.Environment.IsDevelopment()) {
 			// _app.UseSwagger();
 			// _app.UseSwaggerUI();
 		}
 
-		_app.MapPost("/Play", Routes.PlayAsync);
-		_app.MapPost("/Stop", (Routes.StopAsync));
-		_app.MapPost("/Pause", (Routes.PauseAsync));
-		_app.MapGet("/Status", (Routes.StatusAsync));
-		_app.MapGet("/List", (Routes.ListAsync));
-		_app.MapPost("/Add", Routes.AddAsync);
-		_app.MapPost("/Remove", Routes.RemoveAsync);
-		_app.MapPost("/Update", Routes.UpdateAsync);
-		_app.MapPost("/AddYouTubeFile", Routes.AddYouTubeAudioFileAsync);
-		_app.MapPost("/AddYouTubeUrl", Routes.AddYouTubeAudioUrlAsync);
+		App.MapPost("/Play", Routes.PlayAsync);
+		App.MapPost("/Stop", Routes.StopAsync);
+		App.MapPost("/Pause", Routes.PauseAsync);
+		App.MapGet("/Status", Routes.StatusAsync);
+		App.MapGet("/List", Routes.ListAsync);
+		App.MapPost("/Add", Routes.AddAsync);
+		App.MapPost("/Remove", Routes.RemoveAsync);
+		App.MapPost("/Update", Routes.UpdateAsync);
+		App.MapPost("/AddYouTubeFile", Routes.AddYouTubeAudioFileAsync);
+		App.MapPost("/AddYouTubeUrl", Routes.AddYouTubeAudioUrlAsync);
 
-		_logger.LogDebug("dbg");
+		Logger.LogDebug("dbg");
 
-		await _app.RunAsync();
+		await App.RunAsync();
 	}
-
-	public static WebApplication _app;
-
-	public static ILogger<Program> _logger;
 
 }

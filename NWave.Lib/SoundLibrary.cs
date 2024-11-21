@@ -16,15 +16,21 @@ namespace NWave.Lib;
 public class SoundLibrary : IDisposable
 {
 
+	public const int DEFAULT_DEVICE_INDEX = -1;
+
 	public int Count { get; private set; }
 
 	public ConcurrentDictionary<BaseSoundItem, object> Sounds { get; } = new();
 
 	public string RootDir { get; private set; }
 
-	public bool InitDirectory(string dir, int di)
+	public int DeviceIndex { get; private set; } = DEFAULT_DEVICE_INDEX;
+
+	public bool InitDirectory(string dir, int di = DEFAULT_DEVICE_INDEX)
 	{
-		RootDir = dir;
+		RootDir     = dir;
+		DeviceIndex = (di);
+
 		IEnumerable<string> files = EnumerateDirectory(dir);
 
 		var items = files.Select(x => new FixedSoundItem(x, di));
@@ -46,25 +52,28 @@ public class SoundLibrary : IDisposable
 		return files;
 	}
 
-	public async Task<bool> AddYtdlpAudioUrlAsync(string u, int di)
+	public async Task<bool> AddYtdlpAudioUrlAsync(string u, int? di = null)
 	{
+		di ??= DeviceIndex;
+
 		var yt = (await SoundUtility.GetYtdlpAudioUrlAsync(u));
 		var y  = yt.Audio;
 
-		if (!string.IsNullOrWhiteSpace(y)) {
-			return TryAdd(new DynamicSoundItem(y, yt.Title, di));
+		if (!String.IsNullOrWhiteSpace(y)) {
+			return TryAdd(new DynamicSoundItem(y, yt.Title, di.Value));
 		}
 
 		return false;
 	}
 
-	public async Task<bool> AddYtdlpAudioFileAsync(string u, int di)
+	public async Task<bool> AddYtdlpAudioFileAsync(string u, int? di = null)
 	{
+		di ??= DeviceIndex;
 		var yt = await SoundUtility.GetYtdlpAudioFileAsync(u, RootDir);
 		var y  = yt.Path;
 
-		if (!string.IsNullOrWhiteSpace(y)) {
-			return TryAdd(new FixedSoundItem(y, di));
+		if (!String.IsNullOrWhiteSpace(y)) {
+			return TryAdd(new FixedSoundItem(y, di.Value));
 		}
 
 		return false;
@@ -76,7 +85,7 @@ public class SoundLibrary : IDisposable
 
 		if (s1s.Length == 0) {
 
-			return Enumerable.Empty<BaseSoundItem>();
+			return [];
 
 			// return Sounds.Keys.AsEnumerable();
 		}
@@ -124,7 +133,8 @@ public class SoundLibrary : IDisposable
 	{
 		var kv = Sounds.FirstOrDefault(x =>
 		{
-			return x.Key.Name.Contains(rname, StringComparison.InvariantCultureIgnoreCase);
+			return x.Key.Name.Contains(
+				rname, StringComparison.InvariantCultureIgnoreCase);
 		});
 		return kv.Key;
 	}
@@ -151,7 +161,7 @@ public class SoundLibrary : IDisposable
 
 	public void Dispose()
 	{
-		foreach ((BaseSoundItem? key, var _) in Sounds) {
+		foreach ((BaseSoundItem key, var _) in Sounds) {
 			if (!key.IsDisposed) {
 				key.Dispose();
 

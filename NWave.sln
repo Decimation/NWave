@@ -16,6 +16,8 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution 
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "NWave.ServerR", "NWave.ServerR\NWave.ServerR.csproj", "{D804E2C3-12D9-41A5-8D9E-C949714A3497}"
 EndProject
+Project("{D954291E-2A0B-460D-934E-DC6B0785DB48}") = "NWave.Test", "NWave.Test\NWave.Test.shproj", "{3005984B-62B5-4134-A9A3-7B710A700F8F}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -44,5 +46,8 @@ Global
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {12A2DCB7-3FF0-4E6F-84A9-FE5F7ADCCC9A}
+	EndGlobalSection
+	GlobalSection(SharedMSBuildProjectFiles) = preSolution
+		NWave.Test\NWave.Test.projitems*{3005984b-62b5-4134-a9a3-7b710a700f8f}*SharedItemsImports = 13
 	EndGlobalSection
 EndGlobal

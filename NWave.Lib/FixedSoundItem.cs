@@ -23,12 +23,6 @@ public class FixedSoundItem : BaseSoundItem
 		Out.Init(Provider);
 	}
 
-	public override void Dispose()
-	{
-		base.Dispose();
-
-	}
-
 	public override bool SupportsVolume => true;
 
 	public override float Volume
@@ -40,6 +34,12 @@ public class FixedSoundItem : BaseSoundItem
 	public override string ToString()
 	{
 		return $"{base.ToString()} | {Volume}";
+	}
+
+	public override void Dispose()
+	{
+		base.Dispose();
+
 	}
 
 }

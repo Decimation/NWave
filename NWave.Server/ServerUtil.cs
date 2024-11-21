@@ -66,7 +66,7 @@ public static class ServerUtil
 	{
 		var b = await c.ReadBodyTextAsync();
 
-		if (string.IsNullOrEmpty(b)) {
+		if (String.IsNullOrEmpty(b)) {
 			return Array.Empty<string>();
 		}
 

@@ -11,20 +11,11 @@ public static class Routes
 	static Routes()
 	{
 		Routes.Lib = new SoundLibrary();
-
 	}
 
-	public const int DEVICE_INDEX = 3;
-
-	public const string SOUNDS = @"H:\Other Music\Audio resources\NMicspam\";
 
 	public static readonly SoundLibrary Lib;
 
-	public static void Init()
-	{
-		Routes.Lib.InitDirectory(Routes.SOUNDS, Routes.DEVICE_INDEX);
-
-	}
 
 	/// <summary>
 	/// <list type="bullet">
@@ -42,7 +33,7 @@ public static class Routes
 				continue;
 			}
 
-			var si = new FixedSoundItem(s, DEVICE_INDEX);
+			var si = new FixedSoundItem(s, Lib.DeviceIndex);
 
 			var b = Lib.TryAdd(si);
 			await ctx.Response.WriteAsync($"{si}: {b}\n", ServerUtil.Encoding);
@@ -69,7 +60,7 @@ public static class Routes
 
 			var b = Lib.TryRemove(snd);
 			await ctx.Response.WriteAsync($"{snd}: {b}\n", ServerUtil.Encoding);
-			Program._logger.LogInformation("Removed {Sound}: {OK}", snd, b);
+			Program.Logger.LogInformation("Removed {Sound}: {OK}", snd, b);
 
 		}
 
@@ -92,7 +83,7 @@ public static class Routes
 		foreach (var si in snds) {
 			ThreadPool.QueueUserWorkItem((x) =>
 			{
-				Program._logger.LogInformation("Playing {Audio}", si);
+				Program.Logger.LogInformation("Playing {Audio}", si);
 				si.Play();
 			});
 
@@ -119,7 +110,7 @@ public static class Routes
 		foreach (var si in snds) {
 			si.Pause();
 			await context.Response.WriteAsync($"{si}\n", ServerUtil.Encoding);
-			Program._logger.LogInformation("Paused {Sound}", si);
+			Program.Logger.LogInformation("Paused {Sound}", si);
 
 		}
 
@@ -142,7 +133,7 @@ public static class Routes
 		foreach (var si in snds) {
 			si.Stop();
 			await context.Response.WriteAsync($"{si}\n", ServerUtil.Encoding);
-			Program._logger.LogInformation("Stopped {Sound}", si);
+			Program.Logger.LogInformation("Stopped {Sound}", si);
 
 		}
 
@@ -155,13 +146,13 @@ public static class Routes
 		context.Response.ContentType = MediaTypeNames.Text.Plain;
 		var snds  = await GetSoundsBySelectionModeAsync(context, MODE_SIMPLE);
 		var items = snds as BaseSoundItem[] ?? snds.ToArray<BaseSoundItem>();
-		Program._logger.LogInformation("Sounds: {Sounds}", items.QuickJoin());
+		Program.Logger.LogInformation("Sounds: {Sounds}", items.QuickJoin());
 		var opt   = context.Request.Headers.TryGetValue(HDR_VOL, out var sv);
 		var snds2 = items.Where(s => s.SupportsVolume).ToArray();
 
 		if (opt) {
 			foreach (var si in snds2) {
-				var f = float.Parse(sv[0]);
+				var f = Single.Parse(sv[0]);
 
 				if (f < 0f || f > 1.0f) {
 					f /= 100f;
@@ -170,7 +161,7 @@ public static class Routes
 
 				si.Volume = f;
 				await context.Response.WriteAsync($"{si}\n", ServerUtil.Encoding);
-				Program._logger.LogInformation("Updated {Sound}", si);
+				Program.Logger.LogInformation("Updated {Sound}", si);
 
 			}
 
@@ -211,6 +202,7 @@ public static class Routes
 	public static async Task ListAsync(HttpContext ctx)
 	{
 		var js = JsonSerializer.Serialize(Lib.Sounds.Keys);
+
 		// ctx.Response.ContentType = MediaTypeNames.Text.Plain;
 
 		ctx.Response.ContentType = MediaTypeNames.Application.Json;
@@ -230,7 +222,7 @@ public static class Routes
 	{
 		context.Response.ContentType = MediaTypeNames.Text.Plain;
 		var b  = await context.ReadBodyTextAsync();
-		var ok = await Lib.AddYtdlpAudioUrlAsync(b, DEVICE_INDEX);
+		var ok = await Lib.AddYtdlpAudioUrlAsync(b);
 		await context.Response.WriteAsync($"{b} : {ok}", ServerUtil.Encoding);
 
 		await context.Response.CompleteAsync();
@@ -241,7 +233,7 @@ public static class Routes
 	{
 		context.Response.ContentType = MediaTypeNames.Text.Plain;
 		var b  = await context.ReadBodyTextAsync();
-		var ok = await Lib.AddYtdlpAudioFileAsync(b, DEVICE_INDEX);
+		var ok = await Lib.AddYtdlpAudioFileAsync(b);
 		await context.Response.WriteAsync($"{b} : {ok}", ServerUtil.Encoding);
 
 		await context.Response.CompleteAsync();
@@ -287,6 +279,6 @@ public static class Routes
 		return snds;
 	}
 
-	private const string ALL = "*";
+	internal const string ALL = "*";
 
 }

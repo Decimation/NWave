@@ -15,6 +15,24 @@ internal class Program
 	{
 		var x = await SoundUtility.GetYtdlpAudioUrlAsync("https://youtu.be/s9SqpD00T98?si=CtuOkLCp-8h5XK1a");
 		Console.WriteLine(x);
+
+
+		var b = SoundUtility.LoadWindowsDevices();
+		Console.WriteLine(b);
+
+		foreach (ManagementBaseObject o in SoundUtility.WindowsSoundDevice) {
+			Console.WriteLine(o.Properties);
+
+			foreach (PropertyData propertyData in o.Properties) {
+				Console.WriteLine($"{propertyData.Name} {propertyData.Value}");
+			}
+		}
+
+		Console.WriteLine();
+
+		foreach (var device in SoundUtility.GetWaveOutDevices()) {
+			Console.WriteLine($"{device.Key} {device.Value.ProductName}");
+		}
 	}
 
 	static void Test1()

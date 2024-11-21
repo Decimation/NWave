@@ -2,16 +2,42 @@
 // $File.CreatedYear-$File.CreatedMonth-$File.CreatedDay @ $File.CreatedHour:$File.CreatedMinute
 
 global using CBN = JetBrains.Annotations.CanBeNullAttribute;
+using System.Management;
 using System.Text;
 using CliWrap;
 using Flurl;
 using JetBrains.Annotations;
+using NAudio.Wave;
 
 #nullable disable
 namespace NWave.Lib;
 
 public static class SoundUtility
 {
+
+	public static ManagementBaseObject[] WindowsSoundDevice { get; private set; }
+
+	public static bool LoadWindowsDevices(bool reload = false)
+	{
+		if (reload || WindowsSoundDevice == null) {
+			using var objSearcher = new ManagementObjectSearcher("SELECT * FROM Win32_SoundDevice");
+
+			var objCollection = objSearcher.Get();
+			WindowsSoundDevice = new ManagementBaseObject[objCollection.Count];
+			objCollection.CopyTo(WindowsSoundDevice, 0);
+		}
+
+		return WindowsSoundDevice != null;
+
+	}
+
+	public static Dictionary<int, WaveOutCapabilities> GetWaveOutDevices()
+	{
+		var map = Enumerable.Range(0, WaveOut.DeviceCount)
+			.ToDictionary(e => e, WaveOut.GetCapabilities);
+
+		return map;
+	}
 
 	public static async Task<string[]> RunYtdlpAsync(string cmd, CancellationToken c = default)
 	{
