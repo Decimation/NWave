@@ -362,3 +362,5 @@ MigrationBackup/
 # Fody - auto-generated XML schema
 FodyWeavers.xsd
 /NWave.Py/.idea
+/NWave.Server2/NWave.Server2.code-workspace
+/NWave.Test
