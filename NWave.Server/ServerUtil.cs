@@ -1,9 +1,12 @@
 // Read S NWave.Server ContextHelper.cs
 // 2023-10-05 @ 3:53 PM
 
+using Microsoft.Extensions.Primitives;
 using Novus.FileTypes;
 using System.Buffers;
+using System.Net;
 using System.Net.Mime;
+using System.Net.Sockets;
 using System.Text;
 using static System.Windows.Forms.VisualStyles.VisualStyleElement;
 
@@ -11,13 +14,17 @@ namespace NWave.Server;
 
 public static class ServerUtil
 {
+
 	public const int BUF_LEN_DEFAULT = 0x4000;
 
 	public static Encoding Encoding { get; set; } = Encoding.UTF8;
 
-	public static async Task<string> ReadBodyTextAsync(Stream body, int bufLen = BUF_LEN_DEFAULT,
+	public static async Task<string> ReadBodyTextAsync(Stream body, Encoding? encoding = null,
+	                                                   int bufLen = BUF_LEN_DEFAULT,
 	                                                   CancellationToken c = default)
 	{
+		encoding ??= Encoding;
+
 		// Build up the request body in a string builder.
 		var builder = new StringBuilder();
 
@@ -33,7 +40,7 @@ public static class ServerUtil
 			}
 
 			// Append the encoded string into the string builder.
-			var encodedString = Encoding.GetString(buffer, 0, rem);
+			var encodedString = encoding.GetString(buffer, 0, rem);
 			builder.Append(encodedString);
 		}
 
@@ -42,14 +49,17 @@ public static class ServerUtil
 		var entireRequestBody = builder.ToString();
 		return entireRequestBody;
 	}
+	
 
-	public static Task<string> ReadBodyTextAsync(this HttpContext context)
+	/*public static Task<string> ReadBodyTextAsync(this HttpContext context)
 	{
 		return ReadBodyTextAsync(context.Request.Body);
-	}
+	}*/
 
-	/*public static async Task<string?> ReadBodyAsync(this HttpContext context)
+	public static async Task<string?> ReadBodyAsync(this HttpContext context, Encoding? encoding = null)
 	{
+		encoding ??= Encoding;
+
 		var l = context.Request.ContentLength;
 
 		if (!l.HasValue) {
@@ -59,19 +69,22 @@ public static class ServerUtil
 		var lt  = context.Request.ContentType;
 		var buf = new byte[l.Value];
 		var l2  = await context.Request.Body.ReadAsync(buf, 0, buf.Length);
-		var ss  = Encoding.GetString(buf);
+		var ss  = encoding.GetString(buf);
+
 		return ss;
-	}*/
-	public static async Task<string[]> ReadBodyEntriesAsync(this HttpContext c)
+	}
+
+	/*public static async Task<string[]> ReadBodyEntriesAsync(this HttpContext c)
 	{
 		var b = await c.ReadBodyTextAsync();
 
 		if (String.IsNullOrEmpty(b)) {
-			return Array.Empty<string>();
+			return [];
 		}
 
 		return b.Split(',');
-	}
+	}*/
+
 
 	public static string BuildString<T>(IEnumerable<T> t, Func<T, string> x)
 	{
@@ -83,4 +96,5 @@ public static class ServerUtil
 
 		return sb.ToString();
 	}
+
 }

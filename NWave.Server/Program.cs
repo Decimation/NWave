@@ -23,7 +23,8 @@ public sealed class Program
 
 	static Program() { }
 
-	public static WebApplication   App;
+	public static WebApplication App;
+
 	public static ILogger<Program> Logger;
 
 	public const int DEVICE_INDEX = 1;
@@ -32,7 +33,6 @@ public sealed class Program
 
 	public static async Task Main(string[] args)
 	{
-
 		var builder = WebApplication.CreateBuilder(args);
 		builder.Configuration.AddCommandLine(args);
 
@@ -102,15 +102,20 @@ public sealed class Program
 
 		App.UseExceptionHandler(exceptionHandlerApp =>
 		{
-			exceptionHandlerApp.Run(async context =>
+			exceptionHandlerApp.Run(context =>
 			{
-				await Results.Problem().ExecuteAsync(context);
+				//
+				return Results.Problem().ExecuteAsync(context);
 			});
 		});
 
 		// _app.UseCors();
 
-		App.Map("/exception", () => { throw new InvalidOperationException("Sample Exception"); });
+		App.Map("/exception", () =>
+		{
+			//
+			throw new InvalidOperationException("Sample Exception");
+		});
 
 		// _app.UseHsts();
 
@@ -121,7 +126,11 @@ public sealed class Program
 		// _app.UseAuthorization();
 		// App.MapControllers();
 
-		using var loggerFactory = LoggerFactory.Create(b => { b.AddConsole().AddDebug().AddTraceSource("TRACE"); });
+		using var loggerFactory = LoggerFactory.Create(b =>
+		{
+			//
+			b.AddConsole().AddDebug().AddTraceSource("TRACE");
+		});
 
 		Logger = loggerFactory.CreateLogger<Program>();
 

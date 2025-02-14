@@ -18,18 +18,14 @@ public class DynamicSoundItem : BaseSoundItem
 
 	public override bool SupportsVolume => false;
 
-	public Url Url { get; }
-
-	public DynamicSoundItem(string url, string fullName, int idx, int? id = null) : base(fullName, idx, id)
+	public DynamicSoundItem(string fileName, int idx = SoundLibrary.DEFAULT_DEVICE_INDEX, int? id = null) 
+		: base(fileName, idx, id)
 	{
-		Url = url;
-
 		Out = new WaveOut()
 		{
 			DeviceNumber = idx
-
 		};
-		Provider = new MediaFoundationReader(url);
+		Provider = new MediaFoundationReader(fileName);
 		Out.Init(Provider);
 	}
 

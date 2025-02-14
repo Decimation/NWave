@@ -9,7 +9,8 @@ namespace NWave.Lib;
 public class FixedSoundItem : BaseSoundItem
 {
 
-	public FixedSoundItem(string fullName, int idx, int? id = null) : base(fullName, idx, id)
+	public FixedSoundItem(string fileName, int idx = SoundLibrary.DEFAULT_DEVICE_INDEX, int? id = null) 
+		: base(fileName, idx, id)
 	{
 		Out = new WaveOut()
 		{
@@ -18,7 +19,7 @@ public class FixedSoundItem : BaseSoundItem
 
 		Out.PlaybackStopped += OnHandler;
 
-		Provider = new AudioFileReader(FullName);
+		Provider = new AudioFileReader(FileName);
 
 		Out.Init(Provider);
 	}
@@ -28,7 +29,7 @@ public class FixedSoundItem : BaseSoundItem
 	public override float Volume
 	{
 		get => ((AudioFileReader) Provider).Volume;
-		set => ((AudioFileReader) Provider).Volume = value;
+		set => ((AudioFileReader) Provider).Volume = SoundUtility.ClampVolume(value);
 	}
 
 	public override string ToString()
@@ -43,4 +44,3 @@ public class FixedSoundItem : BaseSoundItem
 	}
 
 }
-

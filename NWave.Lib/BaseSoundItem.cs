@@ -20,28 +20,23 @@ public abstract class BaseSoundItem : INotifyPropertyChanged, IDisposable
 
 	public string Name { get; }
 
-	public string FullName { get; }
+	public string FileName { get; }
+
+	public int DeviceIndex { get; }
 
 	public PlaybackStatus Status
 	{
 		get => m_status;
-		protected set
-		{
-			if (value == m_status) return;
-
-			m_status = value;
-			OnPropertyChanged();
-		}
+		protected set => SetField(ref m_status, value);
 	}
 
-	public int DeviceIndex { get; }
-
+	[JI]
 	public bool IsDisposed { get; protected set; }
 
-	[JsonIgnore]
+	[JI]
 	public IWavePlayer Out { get; protected set; }
 
-	[JsonIgnore]
+	[JI]
 	public WaveStream Provider { get; protected set; }
 
 	public abstract float Volume { get; set; }
@@ -56,18 +51,19 @@ public abstract class BaseSoundItem : INotifyPropertyChanged, IDisposable
 
 	public double PlaybackProgress => Math.Round((Position / (double) Length), 4);
 
+	[JI]
 	public abstract bool SupportsVolume { get; }
 
 	public const float VOL_INVALID = Single.NaN;
 
-	protected BaseSoundItem(string fullName, int idx = SoundLibrary.DEFAULT_DEVICE_INDEX, int? id = null)
+	protected BaseSoundItem(string fileName, int idx = SoundLibrary.DEFAULT_DEVICE_INDEX, int? id = null)
 	{
 		/*if (!File.Exists(fullName)) {
 			throw new FileNotFoundException();
 		}*/
 
-		FullName    = fullName;
-		Name        = Path.GetFileName(FullName);
+		FileName    = fileName;
+		Name        = Path.GetFileName(FileName);
 		Status      = PlaybackStatus.None;
 		DeviceIndex = idx;
 		Id          = id ?? Name.GetHashCode();
@@ -129,14 +125,15 @@ public abstract class BaseSoundItem : INotifyPropertyChanged, IDisposable
 		// Dispose();
 	}
 
-	protected virtual void OnPropertyChanged([CBN] [CallerMemberName] string propertyName = null)
+	protected virtual void OnPropertyChanged([CBN] [CMN] string propertyName = null)
 	{
 		PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
 	}
 
-	protected bool SetField<T>(ref T field, T value, [CBN] [CallerMemberName] string propertyName = null)
+	protected bool SetField<T>(ref T field, T value, [CBN] [CMN] string propertyName = null)
 	{
-		if (EqualityComparer<T>.Default.Equals(field, value)) return false;
+		if (EqualityComparer<T>.Default.Equals(field, value))
+			return false;
 
 		field = value;
 		OnPropertyChanged(propertyName);
@@ -147,7 +144,6 @@ public abstract class BaseSoundItem : INotifyPropertyChanged, IDisposable
 	{
 		if (IsDisposed) {
 			throw new ObjectDisposedException($"{Name}", "Disposed");
-
 		}
 	}
 
@@ -164,13 +160,11 @@ public abstract class BaseSoundItem : INotifyPropertyChanged, IDisposable
 
 		if (Provider is IDisposable d) {
 			d.Dispose();
-
 		}
 
 		Provider = null;
 
 		IsDisposed = true;
-
 	}
 
 	public virtual event PropertyChangedEventHandler PropertyChanged;
@@ -179,10 +173,8 @@ public abstract class BaseSoundItem : INotifyPropertyChanged, IDisposable
 
 public enum PlaybackStatus
 {
-
-	None,
+	None = 0,
 	Playing,
 	Paused,
 	Stopped,
-
 }

@@ -13,14 +13,14 @@ internal class Program
 {
 	static async Task Main(string[] args)
 	{
-		var x = await SoundUtility.GetYtdlpAudioUrlAsync("https://youtu.be/s9SqpD00T98?si=CtuOkLCp-8h5XK1a");
+		var x = await YouTubeSoundItem.FromAudioUrlAsync("https://youtu.be/s9SqpD00T98?si=CtuOkLCp-8h5XK1a");
 		Console.WriteLine(x);
 
 
-		var b = SoundUtility.LoadWindowsDevices();
+		var b = SoundUtility.GetWindowsDevices();
 		Console.WriteLine(b);
-
-		foreach (ManagementBaseObject o in SoundUtility.WindowsSoundDevice) {
+		
+		foreach (ManagementBaseObject o in SoundUtility.WindowsSoundDevices.Value) {
 			Console.WriteLine(o.Properties);
 
 			foreach (PropertyData propertyData in o.Properties) {
@@ -68,7 +68,7 @@ internal class Program
 			waveOut.Play();
 
 			while (waveOut.PlaybackState == PlaybackState.Playing) {
-				System.Threading.Thread.Sleep(100);
+				Thread.Sleep(100);
 			}
 		}
 
