@@ -8,6 +8,7 @@ using System.Net;
 using System.Net.Mime;
 using System.Net.Sockets;
 using System.Text;
+using System.Text.Json;
 using static System.Windows.Forms.VisualStyles.VisualStyleElement;
 
 namespace NWave.Server;
@@ -56,24 +57,6 @@ public static class ServerUtil
 		return ReadBodyTextAsync(context.Request.Body);
 	}*/
 
-	public static async Task<string?> ReadBodyAsync(this HttpContext context, Encoding? encoding = null)
-	{
-		encoding ??= Encoding;
-
-		var l = context.Request.ContentLength;
-
-		if (!l.HasValue) {
-			return null;
-		}
-
-		var lt  = context.Request.ContentType;
-		var buf = new byte[l.Value];
-		var l2  = await context.Request.Body.ReadAsync(buf, 0, buf.Length);
-		var ss  = encoding.GetString(buf);
-
-		return ss;
-	}
-
 	/*public static async Task<string[]> ReadBodyEntriesAsync(this HttpContext c)
 	{
 		var b = await c.ReadBodyTextAsync();
@@ -95,6 +78,82 @@ public static class ServerUtil
 		}
 
 		return sb.ToString();
+	}
+
+	public static async Task<string?> ReadBodyAsync(this HttpContext context, Encoding? encoding = null)
+	{
+		encoding ??= Encoding;
+
+		var l = context.Request.ContentLength;
+
+		if (!l.HasValue) {
+			return null;
+		}
+
+		var lt  = context.Request.ContentType;
+		var buf = new byte[l.Value];
+		var l2  = await context.Request.Body.ReadAsync(buf, 0, buf.Length);
+		var ss  = encoding.GetString(buf);
+
+		return ss;
+	}
+
+	[return: MN]
+	public static async Task<T> TryReadJsonAsync<T>(this HttpContext ctx, CancellationToken token = default)
+	{
+		T t = default;
+
+		switch (ctx.Request.Headers.ContentType) {
+			case MediaTypeNames.Application.Json:
+
+				t = await ctx.Request.ReadFromJsonAsync<T>(JsonSerializerOptions.Default, token);
+
+				break;
+
+			case MediaTypeNames.Application.FormUrlEncoded:
+			default:
+				// var s = (await ctx.ReadBodyAsync());
+
+				try {
+					t = await JsonSerializer.DeserializeAsync<T>(ctx.Request.Body, JsonSerializerOptions.Default, token);
+				}
+				catch (Exception e) {
+					Program.Logger.LogError(e, "{Context}", ctx);
+				}
+
+				// var body = ctx.ReadBodyAsync();
+
+				// strings = s?.Split([',']);
+
+				break;
+		}
+
+		return t;
+	}
+
+	public static async Task<string[]> TryReadBodyAsync(this HttpContext ctx, CancellationToken token = default)
+	{
+		string[] t;
+
+		switch (ctx.Request.Headers.ContentType) {
+			case MediaTypeNames.Application.Json:
+
+				t = await ctx.Request.ReadFromJsonAsync<string[]>(JsonSerializerOptions.Default, token);
+
+				break;
+
+			case MediaTypeNames.Application.FormUrlEncoded:
+			default:
+				// var s = (await ctx.ReadBodyAsync());
+
+				var body = await ctx.ReadBodyAsync();
+
+				t = body?.Split([',']);
+
+				break;
+		}
+
+		return t;
 	}
 
 }

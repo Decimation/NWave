@@ -27,9 +27,11 @@ public sealed class Program
 
 	public static ILogger<Program> Logger;
 
+#if TEST
 	public const int DEVICE_INDEX = 1;
 
 	public const string SOUNDS = @"H:\Other Music\Audio resources\NMicspam\";
+#endif
 
 	public static async Task Main(string[] args)
 	{
@@ -55,15 +57,21 @@ public sealed class Program
 
 		App = builder.Build();
 
-		string dir, s;
-		int    di;
+		using var loggerFactory = LoggerFactory.Create(b =>
+		{
+			//
+			b.AddConsole().AddDebug().AddTraceSource("TRACE");
+		});
+		Logger = loggerFactory.CreateLogger<Program>();
 
-#if DEBUG
+		string dir, s;
+		int di;
+#if TEST
 		dir = SOUNDS;
-		di  = DEVICE_INDEX;
+		di = DEVICE_INDEX;
 #else
 		dir = App.Configuration["sourceDirectory"];
-		s = App.Configuration["deviceId"];
+		s  = App.Configuration["deviceId"];
 		di = Int32.Parse(s);
 #endif
 
@@ -71,8 +79,12 @@ public sealed class Program
 		if (!Routes.Lib.InitDirectory(dir, di)) {
 			throw new ArgumentException($"{dir} / {di}");
 		}
+		else {
+			Logger.LogInformation("Device ID: {Id} | Directory: {Dir}", di, dir);
+		}
 
 		// _app.UseAuthentication();
+
 		/*
 		_app.UseExceptionHandler(exceptionHandlerApp =>
 		{
@@ -100,6 +112,7 @@ public sealed class Program
 		});
 		*/
 
+
 		App.UseExceptionHandler(exceptionHandlerApp =>
 		{
 			exceptionHandlerApp.Run(context =>
@@ -111,12 +124,6 @@ public sealed class Program
 
 		// _app.UseCors();
 
-		App.Map("/exception", () =>
-		{
-			//
-			throw new InvalidOperationException("Sample Exception");
-		});
-
 		// _app.UseHsts();
 
 		// _app.UseAuthorization();
@@ -126,19 +133,20 @@ public sealed class Program
 		// _app.UseAuthorization();
 		// App.MapControllers();
 
-		using var loggerFactory = LoggerFactory.Create(b =>
-		{
-			//
-			b.AddConsole().AddDebug().AddTraceSource("TRACE");
-		});
-
-		Logger = loggerFactory.CreateLogger<Program>();
-
-		// Configure the HTTP request pipeline.
 		if (App.Environment.IsDevelopment()) {
 			// _app.UseSwagger();
 			// _app.UseSwaggerUI();
 		}
+
+		App.Map("/exception", (r) =>
+		{
+			//
+			// throw new InvalidOperationException("Sample Exception");
+			Logger.LogError("Error");
+		});
+
+		// Configure the HTTP request pipeline.
+
 
 		App.MapPost("/Play", Routes.PlayAsync);
 		App.MapPost("/Stop", Routes.StopAsync);

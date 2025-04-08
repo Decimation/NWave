@@ -13,6 +13,15 @@ App.MapPost("/AddYouTubeFile", Routes.AddYouTubeAudioFileAsync);
 App.MapPost("/AddYouTubeUrl", Routes.AddYouTubeAudioUrlAsync);
 #>
 
+class NWaveUpdate {
+
+	[string[]] $Names
+
+	[string] $Field
+
+	[object] $Value
+
+}
 
 function Update-NWaveRoutes {
 	param (
@@ -68,6 +77,19 @@ function Stop-NWaveSound {
 	return $response
 }
 
+function Add-NWaveSound {
+	param (
+		$Body,
+		[ValidateSet('Regex', 'Simple')]
+		$Mode
+	)
+	
+	$response = Invoke-WebRequest @script:Route_Add -Body $Body `
+		-Headers @{'Mode' = $Mode }
+	
+	return $response
+}
+
 function Add-NWaveYouTubeUrl {
 	param (
 		$Body,
@@ -96,6 +118,21 @@ function Play-NWaveSound {
 
 	$response = Invoke-WebRequest @script:Route_Play -Body $Body `
 		-Headers @{'Mode' = $Mode }
+
+	$ret = $response
+	return $ret
+}
+
+function Update-NWaveSound {
+
+	param (
+		$Update
+	)
+	
+	$json = $Update | ConvertTo-Json
+
+	$response = Invoke-WebRequest @script:Route_Update -Body $json -ContentType "application/json" `
+		-Method Post
 
 	$ret = $response
 	return $ret

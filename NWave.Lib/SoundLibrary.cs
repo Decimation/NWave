@@ -1,8 +1,11 @@
 ﻿global using CMN = System.Runtime.CompilerServices.CallerMemberNameAttribute;
-global using JI = System.Text.Json.Serialization.JsonIgnoreAttribute;
+global using JIGN = System.Text.Json.Serialization.JsonIgnoreAttribute;
 global using CBN = JetBrains.Annotations.CanBeNullAttribute;
 global using MURV = JetBrains.Annotations.MustUseReturnValueAttribute;
 global using NN = JetBrains.Annotations.NotNullAttribute;
+global using MN = System.Diagnostics.CodeAnalysis.MaybeNullAttribute;
+global using JINC = System.Text.Json.Serialization.JsonIncludeAttribute;
+global using JPO = System.Text.Json.Serialization.JsonPropertyOrderAttribute;
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;

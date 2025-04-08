@@ -1,26 +1,23 @@
-﻿using System.Drawing.Design;
+﻿global using CMN = System.Runtime.CompilerServices.CallerMemberNameAttribute;
+global using JIGN = System.Text.Json.Serialization.JsonIgnoreAttribute;
+global using CBN = JetBrains.Annotations.CanBeNullAttribute;
+global using MURV = JetBrains.Annotations.MustUseReturnValueAttribute;
+global using NN = JetBrains.Annotations.NotNullAttribute;
+global using MN = System.Diagnostics.CodeAnalysis.MaybeNullAttribute;
+global using JINC = System.Text.Json.Serialization.JsonIncludeAttribute;
+global using JPO = System.Text.Json.Serialization.JsonPropertyOrderAttribute;
+using System.Drawing.Design;
+using System.Net.Http.Headers;
 using System.Net.Mime;
 using System.Text.Json;
-using System.Text.Json.Serialization;
+using JetBrains.Annotations;
 using Kantan.Text;
 using Microsoft.Extensions.Primitives;
+using Microsoft.VisualBasic;
 using NWave.Lib;
+using NWave.Server.Types;
 
 namespace NWave.Server;
-
-public class NWaveRequest
-{
-
-	[JsonInclude]
-	[JsonPropertyOrder(0)]
-	public string[] Names { get; }
-
-	public NWaveRequest(string[] names)
-	{
-		Names = names;
-	}
-
-}
 
 public static class Routes
 {
@@ -34,6 +31,8 @@ public static class Routes
 	public static readonly SoundLibrary Lib;
 
 
+#region
+
 	/// <summary>
 	/// <list type="bullet">
 	/// <item>Body: multiple [absolute file path]</item>
@@ -41,20 +40,26 @@ public static class Routes
 	/// </summary>
 	public static async Task AddAsync(HttpContext ctx)
 	{
-		var strings = await ctx.Request.ReadFromJsonAsync<string[]>() ?? [];
+		string[] strings;
+
+		strings = await ctx.TryReadBodyAsync();
+
+		var newSi = new List<FixedSoundItem>();
 
 		foreach (var s in strings) {
-			/*if (!File.Exists(s)) {
-				await ctx.Response.WriteAsync($"{s}: not found\n", ServerUtil.Encoding);
+			if (!File.Exists(s)) {
+				// await ctx.Response.WriteAsync($"{s}: not found\n", ServerUtil.Encoding);
 				continue;
-			}*/
+			}
 
 			var si = new FixedSoundItem(s, Lib.DeviceIndex);
 
 			if (Lib.TryAdd(si)) {
-				await ctx.Response.WriteAsJsonAsync(si);
+				newSi.Add(si);
 			}
 		}
+
+		await ctx.Response.WriteAsJsonAsync(newSi);
 
 		await ctx.Response.CompleteAsync();
 	}
@@ -122,7 +127,6 @@ public static class Routes
 			si.Pause();
 			await context.Response.WriteAsJsonAsync(si);
 			Program.Logger.LogInformation("Paused {Sound}", si);
-
 		}
 
 		await context.Response.CompleteAsync();
@@ -151,10 +155,12 @@ public static class Routes
 	{
 		var update = await context.Request.ReadFromJsonAsync<NWaveUpdate>();
 
+		// var bod = context.TryReadBodyAsync2();
+
 		var snds = GetSoundsBySelectionModeAsync(update.Names, GetHeaderMode(context));
 
 		foreach (var si in snds) {
-			
+
 			// todo: map of update funcs
 
 			switch (update.Field) {
@@ -228,6 +234,10 @@ public static class Routes
 		await context.Response.CompleteAsync();
 	}
 
+#endregion
+
+#region
+
 	public const string MODE_SIMPLE = "Simple";
 
 	public const string MODE_REGEX = "Regex";
@@ -236,13 +246,17 @@ public static class Routes
 
 	public const string HDR_VOL = "Vol";
 
+#endregion
+
+#region
 
 	private static async Task<IEnumerable<BaseSoundItem>> GetSoundsBySelectionModeAsync(HttpContext context)
 	{
 		if (context.Request.ContentLength.GetValueOrDefault() <= 0) {
 			return Lib.Sounds.Values;
 		}
-		var bodyEntries = await context.Request.ReadFromJsonAsync<string[]>() ?? [];
+
+		var bodyEntries = await context.TryReadBodyAsync();
 
 		string mode = GetHeaderMode(context);
 
@@ -258,7 +272,7 @@ public static class Routes
 
 	private static IEnumerable<BaseSoundItem> GetSoundsBySelectionModeAsync(string[] bodyEntries, string mode)
 	{
-		IEnumerable<BaseSoundItem> snds = [];
+		var snds = new List<BaseSoundItem>();
 
 		SoundLibrary.FindByDelegate fn = mode switch
 		{
@@ -267,41 +281,13 @@ public static class Routes
 		};
 
 		foreach (var bodyEntry in bodyEntries) {
-			// todo: aggregate
-			return fn(bodyEntry);
+			var snds1 = (fn(bodyEntry));
+			snds.AddRange(snds1);
 		}
 
 		return snds;
 	}
 
-}
-
-public class NWaveUpdate
-{
-
-	[JsonPropertyOrder(0)]
-	public string[] Names { get; }
-
-	public string Field { get; }
-
-	public object Value { get; }
-
-}
-
-public class NWaveYouTube
-{
-
-	[JsonPropertyOrder(0)]
-	public string Url { get; init; }
-
-	[JsonPropertyOrder(1)]
-	public string Path { get; init; }
-
-	/*[JsonConstructor]
-		public NWaveYouTube(string url, string path)
-		{
-			Url  = url;
-			Path = path;
-		}*/
+#endregion
 
 }

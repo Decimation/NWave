@@ -30,13 +30,13 @@ public abstract class BaseSoundItem : INotifyPropertyChanged, IDisposable
 		protected set => SetField(ref m_status, value);
 	}
 
-	[JI]
+	[JsonIgnore]
 	public bool IsDisposed { get; protected set; }
 
-	[JI]
+	[JsonIgnore]
 	public IWavePlayer Out { get; protected set; }
 
-	[JI]
+	[JsonIgnore]
 	public WaveStream Provider { get; protected set; }
 
 	public abstract float Volume { get; set; }
@@ -51,7 +51,7 @@ public abstract class BaseSoundItem : INotifyPropertyChanged, IDisposable
 
 	public double PlaybackProgress => Math.Round((Position / (double) Length), 4);
 
-	[JI]
+	[JsonIgnore]
 	public abstract bool SupportsVolume { get; }
 
 	public const float VOL_INVALID = Single.NaN;
