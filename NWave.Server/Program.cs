@@ -1,4 +1,5 @@
 using System.Collections.Concurrent;
+using System.Diagnostics;
 using System.Net;
 using System.Text;
 using System.Text.RegularExpressions;
@@ -37,6 +38,7 @@ public sealed class Program
 	{
 		var builder = WebApplication.CreateBuilder(args);
 		builder.Configuration.AddCommandLine(args);
+		builder.Services.AddSignalR();
 
 		// Add services to the container.
 
@@ -57,10 +59,15 @@ public sealed class Program
 
 		App = builder.Build();
 
+		App.UseDefaultFiles();
+		App.UseStaticFiles();
+
 		using var loggerFactory = LoggerFactory.Create(b =>
 		{
 			//
 			b.AddConsole().AddDebug().AddTraceSource("TRACE");
+			b.SetMinimumLevel(LogLevel.Trace);
+
 		});
 		Logger = loggerFactory.CreateLogger<Program>();
 
@@ -159,7 +166,7 @@ public sealed class Program
 		App.MapPost("/AddYouTubeFile", Routes.AddYouTubeAudioFileAsync);
 		App.MapPost("/AddYouTubeUrl", Routes.AddYouTubeAudioUrlAsync);
 
-		Logger.LogDebug("dbg");
+		// App.MapHub<SoundHub>("/Hub");
 
 		await App.RunAsync();
 	}
