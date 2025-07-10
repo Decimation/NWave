@@ -1,16 +1,12 @@
-<Project Sdk="Microsoft.NET.Sdk.Web">
+﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>net9.0-windows</TargetFramework>
-    <Nullable>enable</Nullable>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net9.0-windows10.0.17763.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
     <NoWarn>IDE0049</NoWarn>
-    <DefineConstants>JETBRAINS_ANNOTATIONS</DefineConstants>
     <Configurations>Debug;Release;TEST</Configurations>
-  </PropertyGroup>
-
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
-    <DefineConstants>$(DefineConstants);JETBRAINS_ANNOTATIONS</DefineConstants>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
@@ -19,29 +15,16 @@
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='TEST|AnyCPU'">
     <DefineConstants>$(DefineConstants);JETBRAINS_ANNOTATIONS;TEST</DefineConstants>
+
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
+    <DefineConstants>$(DefineConstants);JETBRAINS_ANNOTATIONS</DefineConstants>
   </PropertyGroup>
 
   <ItemGroup>
-    <Compile Remove="NewFolder\**" />
-    <Compile Remove="Types\**" />
-    <Content Remove="NewFolder\**" />
-    <Content Remove="Types\**" />
-    <EmbeddedResource Remove="NewFolder\**" />
-    <EmbeddedResource Remove="Types\**" />
-    <None Remove="NewFolder\**" />
-    <None Remove="Types\**" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <Compile Include="Types\NWaveRequest.cs" />
-    <Compile Include="Types\NWaveUpdate.cs" />
-    <Compile Include="Types\NWaveYouTube.cs" />
-  </ItemGroup>
-
-  <ItemGroup>
     <PackageReference Include="CliWrap" Version="3.9.0" />
-    <PackageReference Include="JetBrains.Annotations" Version="2024.3.0" />
-    <PackageReference Include="Microsoft.AspNetCore.OpenApi" Version="9.0.7" />
+    <PackageReference Include="Jetbrains.Annotations" Version="2024.3.0" />
     <PackageReference Include="Microsoft.Extensions.Configuration" Version="9.0.7" />
     <PackageReference Include="Microsoft.Extensions.Logging" Version="9.0.7" />
     <PackageReference Include="Microsoft.Extensions.Logging.Configuration" Version="9.0.7" />
@@ -49,17 +32,13 @@
     <PackageReference Include="Microsoft.Extensions.Logging.Debug" Version="9.0.7" />
     <PackageReference Include="Microsoft.Extensions.Logging.TraceSource" Version="9.0.7" />
     <PackageReference Include="Microsoft.Extensions.Options" Version="9.0.7" />
-    <PackageReference Include="Microsoft.TypeScript.MSBuild" Version="5.8.3">
-      <PrivateAssets>all</PrivateAssets>
-      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
-    </PackageReference>
     <PackageReference Include="NAudio" Version="2.2.1" />
     <PackageReference Include="NAudio.Asio" Version="2.2.1" />
     <PackageReference Include="NAudio.Core" Version="2.2.1" />
     <PackageReference Include="NAudio.Wasapi" Version="2.2.1" />
     <PackageReference Include="NAudio.WinMM" Version="2.2.1" />
-    <PackageReference Include="Swashbuckle.AspNetCore" Version="9.0.3" />
     <PackageReference Include="System.IO.Ports" Version="9.0.7" />
+    <PackageReference Include="System.Management" Version="9.0.7" />
   </ItemGroup>
 
   <ItemGroup>

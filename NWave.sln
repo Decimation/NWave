@@ -18,6 +18,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "NWave.ServerR", "NWave.Serv
 EndProject
 Project("{D954291E-2A0B-460D-934E-DC6B0785DB48}") = "NWave.Test", "NWave.Test\NWave.Test.shproj", "{3005984B-62B5-4134-A9A3-7B710A700F8F}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NWave.Serial", "NWave.Serial\NWave.Serial.csproj", "{2D91601A-9A66-4A67-BF0B-AA9CE63933A2}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -48,6 +50,12 @@ Global
 		{D804E2C3-12D9-41A5-8D9E-C949714A3497}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{D804E2C3-12D9-41A5-8D9E-C949714A3497}.Release|Any CPU.Build.0 = Release|Any CPU
 		{D804E2C3-12D9-41A5-8D9E-C949714A3497}.TEST|Any CPU.ActiveCfg = Release|Any CPU
+		{2D91601A-9A66-4A67-BF0B-AA9CE63933A2}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{2D91601A-9A66-4A67-BF0B-AA9CE63933A2}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{2D91601A-9A66-4A67-BF0B-AA9CE63933A2}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{2D91601A-9A66-4A67-BF0B-AA9CE63933A2}.Release|Any CPU.Build.0 = Release|Any CPU
+		{2D91601A-9A66-4A67-BF0B-AA9CE63933A2}.TEST|Any CPU.ActiveCfg = Debug|Any CPU
+		{2D91601A-9A66-4A67-BF0B-AA9CE63933A2}.TEST|Any CPU.Build.0 = Debug|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

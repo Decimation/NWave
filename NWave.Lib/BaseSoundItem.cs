@@ -27,7 +27,10 @@ public abstract class BaseSoundItem : INotifyPropertyChanged, IDisposable
 	public PlaybackStatus Status
 	{
 		get => m_status;
-		protected set => SetField(ref m_status, value);
+		protected set
+		{
+			SetField(ref m_status, value);
+		}
 	}
 
 	[JsonIgnore]
@@ -67,6 +70,7 @@ public abstract class BaseSoundItem : INotifyPropertyChanged, IDisposable
 		Status      = PlaybackStatus.None;
 		DeviceIndex = idx;
 		Id          = id ?? Name.GetHashCode();
+
 	}
 
 	protected void OnHandler([CBN] object sender, StoppedEventArgs args)
@@ -168,6 +172,7 @@ public abstract class BaseSoundItem : INotifyPropertyChanged, IDisposable
 	}
 
 	public virtual event PropertyChangedEventHandler PropertyChanged;
+
 
 }
 
