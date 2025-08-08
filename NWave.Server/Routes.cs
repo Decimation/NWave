@@ -16,6 +16,7 @@ using Microsoft.Extensions.Primitives;
 using Microsoft.VisualBasic;
 using NWave.Lib;
 using NWave.Server.Types;
+using NWave.Lib.Model;
 
 namespace NWave.Server;
 

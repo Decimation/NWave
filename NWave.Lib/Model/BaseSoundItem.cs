@@ -4,45 +4,41 @@
 #nullable disable
 
 using System.ComponentModel;
+using System.Diagnostics.CodeAnalysis;
 using System.Runtime.CompilerServices;
 using System.Text.Json.Serialization;
 using JetBrains.Annotations;
 using NAudio.Wave;
 
-namespace NWave.Lib;
+namespace NWave.Lib.Model;
 
 public abstract class BaseSoundItem : INotifyPropertyChanged, IDisposable
 {
 
 	protected PlaybackStatus m_status;
 
-	public int? Id { get; }
-
 	public string Name { get; }
 
-	public string FileName { get; }
+	public string FullName { get; }
 
 	public int DeviceIndex { get; }
 
 	public PlaybackStatus Status
 	{
 		get => m_status;
-		protected set
-		{
-			SetField(ref m_status, value);
-		}
+		protected set => SetField(ref m_status, value);
 	}
 
-	[JsonIgnore]
+	[JIGN]
 	public bool IsDisposed { get; protected set; }
 
-	[JsonIgnore]
+	[JIGN]
 	public IWavePlayer Out { get; protected set; }
 
-	[JsonIgnore]
+	[JIGN]
 	public WaveStream Provider { get; protected set; }
 
-	public abstract float Volume { get; set; }
+	public abstract float? Volume { get; set; }
 
 	public virtual long Length => Provider.Length;
 
@@ -52,24 +48,22 @@ public abstract class BaseSoundItem : INotifyPropertyChanged, IDisposable
 		set => Provider.Position = value;
 	}
 
-	public double PlaybackProgress => Math.Round((Position / (double) Length), 4);
+	public double PlaybackProgress => Math.Round(Position / (double) Length, 4);
 
-	[JsonIgnore]
+	[JIGN]
+	[MemberNotNullWhen(true, nameof(Volume))]
 	public abstract bool SupportsVolume { get; }
 
-	public const float VOL_INVALID = Single.NaN;
-
-	protected BaseSoundItem(string fileName, int idx = SoundLibrary.DEFAULT_DEVICE_INDEX, int? id = null)
+	protected BaseSoundItem(string fullName, int idx = DEFAULT_DEVICE_INDEX)
 	{
 		/*if (!File.Exists(fullName)) {
 			throw new FileNotFoundException();
 		}*/
 
-		FileName    = fileName;
-		Name        = Path.GetFileName(FileName);
+		FullName    = fullName;
+		Name        = Path.GetFileName(FullName);
 		Status      = PlaybackStatus.None;
 		DeviceIndex = idx;
-		Id          = id ?? Name.GetHashCode();
 
 	}
 
@@ -105,6 +99,7 @@ public abstract class BaseSoundItem : INotifyPropertyChanged, IDisposable
 
 	public virtual void Reset()
 	{
+		// CheckDisposed();
 		Position = 0;
 	}
 
@@ -120,6 +115,7 @@ public abstract class BaseSoundItem : INotifyPropertyChanged, IDisposable
 		Out.Play();
 	}
 
+
 	public virtual void Stop()
 	{
 		CheckDisposed();
@@ -129,7 +125,7 @@ public abstract class BaseSoundItem : INotifyPropertyChanged, IDisposable
 		// Dispose();
 	}
 
-	protected virtual void OnPropertyChanged([CBN] [CMN] string propertyName = null)
+	protected virtual void OnPropertyChanged([CBN] string propertyName = null)
 	{
 		PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
 	}
@@ -173,13 +169,16 @@ public abstract class BaseSoundItem : INotifyPropertyChanged, IDisposable
 
 	public virtual event PropertyChangedEventHandler PropertyChanged;
 
+	public const int DEFAULT_DEVICE_INDEX = -1;
 
 }
 
 public enum PlaybackStatus
 {
+
 	None = 0,
 	Playing,
 	Paused,
 	Stopped,
+
 }

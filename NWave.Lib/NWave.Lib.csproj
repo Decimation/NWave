@@ -6,7 +6,7 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
     <NoWarn>IDE0049</NoWarn>
-    <DefineConstants>JETBRAINS_ANNOTATIONS</DefineConstants>
+    <DefineConstants>JETBRAINS_ANNOTATIONS;TRACE</DefineConstants>
     <Configurations>Debug;Release;TEST</Configurations>
   </PropertyGroup>
 
@@ -15,7 +15,7 @@
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
-    <DefineConstants>$(DefineConstants);JETBRAINS_ANNOTATIONS</DefineConstants>
+    <DefineConstants>$(DefineConstants);JETBRAINS_ANNOTATIONS;DEBUG</DefineConstants>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='TEST|AnyCPU'">

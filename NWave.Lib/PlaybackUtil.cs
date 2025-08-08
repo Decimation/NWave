@@ -1,6 +1,8 @@
 ﻿// Read S NWave.Lib PlaybackUtil.cs
 // 2023-10-19 @ 12:07 AM
 
+using NWave.Lib.Model;
+
 namespace NWave.Lib;
 
 public static class PlaybackUtil

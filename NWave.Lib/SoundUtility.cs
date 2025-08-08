@@ -40,7 +40,7 @@ public static class SoundUtility
 
 	public static float ClampVolume(float f)
 	{
-		if (f < 0f || f > 1.0f) {
+		if (f is < 0f or > 1.0f) {
 			f /= 100f;
 			f =  Math.Clamp(f, 0f, 1.0f);
 		}

@@ -4,13 +4,13 @@
 #nullable disable
 using NAudio.Wave;
 
-namespace NWave.Lib;
+namespace NWave.Lib.Model;
 
 public class FixedSoundItem : BaseSoundItem
 {
 
-	public FixedSoundItem(string fileName, int idx = SoundLibrary.DEFAULT_DEVICE_INDEX, int? id = null) 
-		: base(fileName, idx, id)
+	public FixedSoundItem(string fullName, int idx = DEFAULT_DEVICE_INDEX) 
+		: base(fullName, idx)
 	{
 		Out = new WaveOut()
 		{
@@ -19,17 +19,17 @@ public class FixedSoundItem : BaseSoundItem
 
 		Out.PlaybackStopped += OnHandler;
 
-		Provider = new AudioFileReader(FileName);
+		Provider = new AudioFileReader(FullName);
 
 		Out.Init(Provider);
 	}
 
 	public override bool SupportsVolume => true;
 
-	public override float Volume
+	public override float? Volume
 	{
 		get => ((AudioFileReader) Provider).Volume;
-		set => ((AudioFileReader) Provider).Volume = SoundUtility.ClampVolume(value);
+		set => ((AudioFileReader) Provider).Volume = SoundUtility.ClampVolume(value.Value);
 	}
 
 	public override string ToString()

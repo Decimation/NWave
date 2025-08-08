@@ -1,0 +1,15 @@
+{
+  "profiles": {
+    "NWave": {
+      "commandName": "Project"
+    },
+    "Profile 1": {
+      "commandName": "Project",
+      "commandLineArgs": "-1 --source \"https://youtu.be/pT9yRqrFSAk?si=2gNtdYvFLjLJUUef\""
+    },
+    "Profile 2": {
+      "commandName": "Project",
+      "commandLineArgs": "-1 --source \"H:\\Other Music\\Audio resources\\NMicspam\\ow.wav\""
+    }
+  }
+}
