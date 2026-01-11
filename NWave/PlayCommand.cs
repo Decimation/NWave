@@ -13,7 +13,7 @@ namespace NWave;
 public class PlayCommand : AsyncCommand<PlayCommandOptions>
 {
 
-	public override async Task<int> ExecuteAsync(CommandContext context, PlayCommandOptions settings)
+	public override async Task<int> ExecuteAsync(CommandContext context, PlayCommandOptions settings, CancellationToken ct)
 	{
 		var sl = new SoundLibrary();
 
@@ -32,7 +32,7 @@ public class PlayCommand : AsyncCommand<PlayCommandOptions>
 			await AC.Status().StartAsync("Adding YT", async (r) =>
 			{
 				//
-				bsi = await YouTubeSoundItem.FromAudioUrlAsync(src);
+				bsi = await YouTubeSoundItem.FromAudioUrlAsync(src, ct);
 
 				r.Refresh();
 			});

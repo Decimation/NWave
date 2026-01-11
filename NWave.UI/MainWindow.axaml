@@ -1,0 +1,30 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:ui="clr-namespace:NWave.UI"
+        mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
+        x:Class="NWave.UI.MainWindow"
+        x:DataType="ui:MainWindowViewModel"
+        Title="NWave.UI">
+
+    <Design.DataContext>
+        <ui:MainWindowViewModel></ui:MainWindowViewModel>
+    </Design.DataContext>
+
+    <DockPanel >
+        <DataGrid Margin="20" ItemsSource="{Binding Items}" Name="Dg_Items"
+                  GridLinesVisibility="All" Grid.Column="0" Grid.Row="0" Grid.ColumnSpan="3" Grid.RowSpan="2"
+                  BorderThickness="1" BorderBrush="Gray" DockPanel.Dock="Top" DragDrop.AllowDrop="True">
+            <DataGrid.Columns>
+                <DataGridTextColumn Header="Name" Binding="{Binding Item.Name}" IsReadOnly="False">
+                </DataGridTextColumn>
+                <DataGridTextColumn Header="Start" Binding="{Binding Start}" IsReadOnly="False"/>
+                <DataGridTextColumn Header="End" Binding="{Binding End}" IsReadOnly="False"/>
+            </DataGrid.Columns>
+        </DataGrid>
+
+        <Button Content="Start" DockPanel.Dock="Bottom"></Button>
+
+    </DockPanel>
+</Window>

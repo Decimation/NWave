@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio Version 17
-VisualStudioVersion = 17.6.33815.320
+# Visual Studio Version 18
+VisualStudioVersion = 18.1.11304.174
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "NWave", "NWave\NWave.csproj", "{640D30F3-B564-416E-A530-98ADF46DC4D0}"
 EndProject
@@ -16,9 +16,11 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution 
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "NWave.ServerR", "NWave.ServerR\NWave.ServerR.csproj", "{D804E2C3-12D9-41A5-8D9E-C949714A3497}"
 EndProject
-Project("{D954291E-2A0B-460D-934E-DC6B0785DB48}") = "NWave.Test", "NWave.Test\NWave.Test.shproj", "{3005984B-62B5-4134-A9A3-7B710A700F8F}"
+Project("{D954291E-2A0B-460D-934E-DC6B0785DB48}") = "NWave.Shared", "NWave.Shared\NWave.Shared.shproj", "{3005984B-62B5-4134-A9A3-7B710A700F8F}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NWave.Serial", "NWave.Serial\NWave.Serial.csproj", "{2D91601A-9A66-4A67-BF0B-AA9CE63933A2}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NWave.UI", "NWave.UI\NWave.UI.csproj", "{AC215A2C-0B01-4747-8227-71274FD5A265}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -56,14 +58,17 @@ Global
 		{2D91601A-9A66-4A67-BF0B-AA9CE63933A2}.Release|Any CPU.Build.0 = Release|Any CPU
 		{2D91601A-9A66-4A67-BF0B-AA9CE63933A2}.TEST|Any CPU.ActiveCfg = Debug|Any CPU
 		{2D91601A-9A66-4A67-BF0B-AA9CE63933A2}.TEST|Any CPU.Build.0 = Debug|Any CPU
+		{AC215A2C-0B01-4747-8227-71274FD5A265}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{AC215A2C-0B01-4747-8227-71274FD5A265}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{AC215A2C-0B01-4747-8227-71274FD5A265}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{AC215A2C-0B01-4747-8227-71274FD5A265}.Release|Any CPU.Build.0 = Release|Any CPU
+		{AC215A2C-0B01-4747-8227-71274FD5A265}.TEST|Any CPU.ActiveCfg = Debug|Any CPU
+		{AC215A2C-0B01-4747-8227-71274FD5A265}.TEST|Any CPU.Build.0 = Debug|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {12A2DCB7-3FF0-4E6F-84A9-FE5F7ADCCC9A}
-	EndGlobalSection
-	GlobalSection(SharedMSBuildProjectFiles) = preSolution
-		NWave.Test\NWave.Test.projitems*{3005984b-62b5-4134-a9a3-7b710a700f8f}*SharedItemsImports = 13
 	EndGlobalSection
 EndGlobal
